@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="default">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creador de Checklist</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Definición de las paletas de colores usando variables CSS */
+        :root[data-theme='default'] {
+            --bg-primary: #f0e6e6; /* Un poco más claro que #DCBEBE para el fondo */
+            --bg-secondary: #ffffff;
+            --text-primary: #1E2846;
+            --text-secondary: #4a5568;
+            --accent: #D2B48C;
+            --border: #C8C8C8;
+            --done-bg: #D2B48C;
+            --done-text: #1E2846;
+        }
+
+        :root[data-theme='formal'] {
+            --bg-primary: #EBF4FF;
+            --bg-secondary: #ffffff;
+            --text-primary: #2d3748;
+            --text-secondary: #4a5568;
+            --accent: #6C7A89;
+            --border: #CBD5E0;
+            --done-bg: #6C7A89;
+            --done-text: #ffffff;
+        }
+
+        :root[data-theme='dark'] {
+            --bg-primary: #1a202c;
+            --bg-secondary: #2d3748;
+            --text-primary: #edf2f7;
+            --text-secondary: #a0aec0;
+            --accent: #4299e1;
+            --border: #4a5568;
+            --done-bg: #4299e1;
+            --done-text: #1a202c;
+        }
+
+        /* Aplicación de las variables a los elementos */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container-card {
+            background-color: var(--bg-secondary);
+            transition: background-color 0.3s;
+        }
+
+        .main-title {
+            color: var(--text-primary);
+        }
+        
+        .secondary-text {
+            color: var(--text-secondary);
+        }
+
+        textarea, .checklist-item {
+            border-color: var(--border);
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+             border-color: var(--accent);
+             box-shadow: 0 0 0 2px var(--accent-light, #D2B48C40);
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: var(--bg-secondary);
+            transition: background-color 0.3s;
+        }
+        
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        .icon-btn {
+            color: var(--text-secondary);
+        }
+        .icon-btn:hover {
+            color: var(--accent);
+        }
+
+        .checklist-item label {
+            transition: all 0.3s ease-in-out;
+            position: relative;
+        }
+        
+        .checklist-item input[type="checkbox"]:checked + label {
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+
+        .done-marker {
+            background-color: var(--done-bg);
+            color: var(--done-text);
+            opacity: 0;
+            transform: translateX(-10px) scale(0.8);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .checklist-item input[type="checkbox"]:checked ~ .done-marker {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+        }
+
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Pantalla de Creación -->
+    <div id="creator-page" class="min-h-screen flex items-center justify-center p-4">
+        <div class="container-card w-full max-w-3xl p-6 sm:p-8 rounded-2xl shadow-lg">
+            
+            <header class="flex justify-between items-center mb-6">
+                <h1 class="main-title text-2xl sm:text-3xl font-bold">Creador de Checklist</h1>
+                <div class="flex items-center space-x-3">
+                    <!-- Botón de cambio de tema -->
+                    <button id="theme-switcher-creator" class="icon-btn p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--bg-secondary)] focus:ring-[var(--accent)]" aria-label="Cambiar tema">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a4 4 0 014-4h10a4 4 0 014 4v12a4 4 0 01-4 4H7z"></path></svg>
+                    </button>
+                    <!-- Botón de Ayuda -->
+                    <button id="help-btn" class="icon-btn p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--bg-secondary)] focus:ring-[var(--accent)]" aria-label="Ayuda">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </button>
+                    <!-- Botón de Inicio -->
+                    <a href="https://ricardoquiroz.github.io/iagen/" class="icon-btn p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--bg-secondary)] focus:ring-[var(--accent)]" aria-label="Página de inicio">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                    </a>
+                </div>
+            </header>
+
+            <p class="secondary-text mb-4">
+                Pega tu lista de actividades en el cuadro de abajo. Usa números para las actividades principales y letras para las sub-actividades.
+            </p>
+
+            <textarea id="data-input" class="w-full h-64 p-4 border-2 rounded-lg focus:outline-none transition duration-200 bg-transparent" placeholder="Ej:
+1. Actividad 1
+    a. Sub actividad 1
+2. Actividad 2
+    b. Sub actividad 2"></textarea>
+
+            <button id="create-checklist-btn" class="btn-primary w-full mt-6 py-3 text-lg font-bold rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300">
+                Crear Checklist
+            </button>
+        </div>
+    </div>
+
+    <!-- Pantalla de la Checklist -->
+    <div id="checklist-page" class="min-h-screen p-4 sm:p-8" style="display: none;">
+        <div class="w-full max-w-4xl mx-auto">
+            <header class="flex justify-between items-center mb-8">
+                <button id="back-btn" class="icon-btn flex items-center space-x-2 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--bg-primary)] focus:ring-[var(--accent)]" aria-label="Volver">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    <span class="font-semibold hidden sm:inline">Volver</span>
+                </button>
+
+                <div class="flex items-center space-x-3">
+                    <button id="export-btn" class="icon-btn p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--bg-primary)] focus:ring-[var(--accent)]" aria-label="Exportar a HTML">
+                       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    </button>
+                    <button id="theme-switcher-checklist" class="icon-btn p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--bg-primary)] focus:ring-[var(--accent)]" aria-label="Cambiar tema">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a4 4 0 014-4h10a4 4 0 014 4v12a4 4 0 01-4 4H7z"></path></svg>
+                    </button>
+                    <a href="https://ricardoquiroz.github.io/iagen/" class="icon-btn p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--bg-primary)] focus:ring-[var(--accent)]" aria-label="Página de inicio">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                    </a>
+                </div>
+            </header>
+
+            <div id="checklist-output" class="container-card p-6 sm:p-8 rounded-2xl shadow-lg">
+                <!-- El checklist se generará aquí -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Ayuda -->
+    <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" style="display: none;">
+        <div class="container-card max-w-md w-full p-8 rounded-2xl shadow-2xl relative">
+            <h2 class="main-title text-2xl font-bold mb-4">Formato de Entrada</h2>
+            <p class="secondary-text mb-4">
+                Para crear tu checklist correctamente, por favor introduce los datos con la siguiente estructura:
+            </p>
+            <pre class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg text-sm secondary-text whitespace-pre-wrap"><code>1. Actividad Principal
+    a. Sub-actividad
+    b. Otra sub-actividad
+2. Siguiente Actividad
+    a. ...</code></pre>
+            <button id="close-modal-btn" class="btn-primary w-full mt-6 py-2 rounded-lg font-semibold">Cerrar</button>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Elementos del DOM
+            const creatorPage = document.getElementById('creator-page');
+            const checklistPage = document.getElementById('checklist-page');
+            const dataInput = document.getElementById('data-input');
+            const createBtn = document.getElementById('create-checklist-btn');
+            const backBtn = document.getElementById('back-btn');
+            const exportBtn = document.getElementById('export-btn');
+            const checklistOutput = document.getElementById('checklist-output');
+            
+            // Ayuda Modal
+            const helpBtn = document.getElementById('help-btn');
+            const helpModal = document.getElementById('help-modal');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+            
+            // Temas
+            const themeSwitchers = document.querySelectorAll('[id^="theme-switcher-"]');
+            const themes = ['default', 'formal', 'dark'];
+            let currentThemeIndex = 0;
+
+            // Datos de ejemplo
+            dataInput.value = `1. Planificación del Proyecto
+    a. Definir objetivos y alcance
+    b. Crear cronograma detallado
+    c. Asignar recursos y presupuesto
+2. Diseño de la Interfaz (UI/UX)
+    a. Investigar a los usuarios
+    b. Crear wireframes y prototipos
+    c. Realizar pruebas de usabilidad
+3. Desarrollo del Frontend
+    a. Configurar el entorno de desarrollo
+    b. Maquetar la estructura HTML
+    c. Implementar estilos con CSS
+    d. Añadir interactividad con JavaScript`;
+
+            // ----- LÓGICA DE NAVEGACIÓN -----
+            createBtn.addEventListener('click', () => {
+                const text = dataInput.value.trim();
+                if (text) {
+                    const html = parseChecklistText(text);
+                    checklistOutput.innerHTML = html;
+                    creatorPage.style.display = 'none';
+                    checklistPage.style.display = 'block';
+                } else {
+                    alert('Por favor, introduce al menos una actividad.');
+                }
+            });
+
+            backBtn.addEventListener('click', () => {
+                checklistPage.style.display = 'none';
+                creatorPage.style.display = 'block';
+            });
+
+            // ----- LÓGICA DEL MODAL DE AYUDA -----
+            helpBtn.addEventListener('click', () => {
+                helpModal.style.display = 'flex';
+            });
+            closeModalBtn.addEventListener('click', () => {
+                helpModal.style.display = 'none';
+            });
+            helpModal.addEventListener('click', (e) => {
+                 if (e.target === helpModal) {
+                    helpModal.style.display = 'none';
+                }
+            });
+
+            // ----- LÓGICA DEL CAMBIO DE TEMA -----
+            function switchTheme() {
+                currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+                document.documentElement.setAttribute('data-theme', themes[currentThemeIndex]);
+            }
+            themeSwitchers.forEach(switcher => switcher.addEventListener('click', switchTheme));
+
+
+            // ----- FUNCIÓN DE PARSEO DEL TEXTO -----
+            function parseChecklistText(text) {
+                const lines = text.split('\n');
+                let html = '<ol class="list-decimal list-inside space-y-6 text-lg">';
+                let sublistOpen = false;
+
+                lines.forEach(line => {
+                    const trimmedLine = line.trim();
+                    if (!trimmedLine) return;
+
+                    // Regex para actividad principal (ej. "1.", "1) ", "1- ")
+                    const mainActivityMatch = trimmedLine.match(/^(\d+)[.\-)]\s*(.*)/);
+                    // Regex para sub-actividad (ej. "a. ", "a) ", "- ")
+                    const subActivityMatch = trimmedLine.match(/^([a-zA-Z][.\-)]|\*|-)\s*(.*)/);
+
+                    if (mainActivityMatch) {
+                        if (sublistOpen) {
+                            html += '</ul></li>';
+                            sublistOpen = false;
+                        }
+                        const content = mainActivityMatch[2];
+                        const id = `item-${Date.now()}-${Math.random()}`;
+                        html += `<li class="font-bold text-xl mb-2">${generateChecklistItem(id, content)}</li>`;
+                    } else if (subActivityMatch) {
+                        if (!sublistOpen) {
+                            html += '<ul class="list-disc list-inside mt-2 ml-6 space-y-3">';
+                            sublistOpen = true;
+                        }
+                        const content = subActivityMatch[2];
+                        const id = `item-${Date.now()}-${Math.random()}`;
+                        html += `<li>${generateChecklistItem(id, content)}</li>`;
+                    }
+                });
+
+                if (sublistOpen) {
+                    html += '</ul></li>';
+                }
+                html += '</ol>';
+                return html;
+            }
+
+            function generateChecklistItem(id, content) {
+                return `
+                    <div class="checklist-item flex items-center relative">
+                        <span class="done-marker absolute -left-20 text-xs font-bold py-1 px-3 rounded-full">HECHO</span>
+                        <input id="${id}" type="checkbox" class="h-5 w-5 rounded border-gray-300 text-[var(--accent)] focus:ring-[var(--accent)] cursor-pointer">
+                        <label for="${id}" class="ml-3 text-lg font-medium secondary-text cursor-pointer">${content}</label>
+                    </div>
+                `;
+            }
+
+            // ----- LÓGICA DE EXPORTACIÓN -----
+            exportBtn.addEventListener('click', () => {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                const checklistHTML = checklistOutput.innerHTML;
+                const fileContent = generateExportHTML(checklistHTML, currentTheme);
+                
+                const blob = new Blob([fileContent], { type: 'text/html' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'checklist.html';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(a.href);
+            });
+
+            function generateExportHTML(checklistContent, theme) {
+                // Obtenemos todo el bloque de estilos, incluyendo las paletas y Tailwind
+                const styles = document.querySelector('style').innerHTML;
+
+                return `
+<!DOCTYPE html>
+<html lang="es" data-theme="${theme}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Checklist</title>
+    <script src="https://cdn.tailwindcss.com"><\/script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>${styles}<\/style>
+</head>
+<body class="antialiased">
+    <div class="min-h-screen p-4 sm:p-8">
+        <div class="w-full max-w-4xl mx-auto">
+            <header class="flex justify-end items-center mb-8 space-x-3">
+                <button id="theme-switcher-checklist" class="icon-btn p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--bg-primary)] focus:ring-[var(--accent)]" aria-label="Cambiar tema">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a4 4 0 014-4h10a4 4 0 014 4v12a4 4 0 01-4 4H7z"></path><\/svg>
+                </button>
+                <a href="https://ricardoquiroz.github.io/iagen/" class="icon-btn p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--bg-primary)] focus:ring-[var(--accent)]" aria-label="Página de inicio">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path><\/svg>
+                </a>
+            </header>
+            <div class="container-card p-6 sm:p-8 rounded-2xl shadow-lg">
+                ${checklistContent}
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const themeSwitcher = document.getElementById('theme-switcher-checklist');
+            const themes = ['default', 'formal', 'dark'];
+            let currentThemeIndex = themes.indexOf(document.documentElement.getAttribute('data-theme'));
+
+            themeSwitcher.addEventListener('click', () => {
+                currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+                document.documentElement.setAttribute('data-theme', themes[currentThemeIndex]);
+            });
+        });
+    <\/script>
+</body>
+</html>
+                `;
+            }
+
+        });
+    </script>
+
+</body>
+</html>
