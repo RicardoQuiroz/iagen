@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infografía: ChatGPT vs. Gemini</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F3F4F6;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .kpi-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            text-align: center;
+        }
+        .kpi-number {
+            font-size: 3rem;
+            font-weight: 900;
+            line-height: 1;
+        }
+        .kpi-label {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #4B5563;
+            margin-top: 0.5rem;
+        }
+        .flow-chart-item {
+            display: flex;
+            align-items: center;
+            background-color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            font-weight: 600;
+        }
+        .flow-chart-icon {
+            font-size: 1.5rem;
+            margin-right: 0.75rem;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <header class="text-center py-12 px-4 bg-white">
+        <h1 class="text-4xl md:text-5xl font-black text-gray-900">ChatGPT vs. Gemini</h1>
+        <p class="mt-4 text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">Un duelo visual entre los titanes de la IA. Descubre cuál es la herramienta perfecta para ti según sus fortalezas, características y capacidades únicas.</p>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-8">
+        
+        <section id="plataformas" class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-3xl font-bold mb-4 text-center text-[#00AEEF]">🚀 Gemini: Potencia Bruta y Ecosistema</h2>
+                <p class="mb-6 text-gray-600">Gemini, la IA de Google, destaca por su capacidad para procesar volúmenes masivos de información y su profunda integración con el ecosistema de Google, convirtiéndola en una herramienta de investigación y productividad sin igual.</p>
+                <ul class="space-y-3">
+                    <li class="flex items-start"><span class="text-[#8DC63F] font-bold text-xl mr-3">✔</span><div><strong>Investigación Profunda:</strong> Genera informes extensos utilizando más de 50 fuentes, superando a la competencia.</div></li>
+                    <li class="flex items-start"><span class="text-[#8DC63F] font-bold text-xl mr-3">✔</span><div><strong>Función Canvas:</strong> Crea aplicaciones y visualizaciones interactivas a partir de grandes volúmenes de datos.</div></li>
+                    <li class="flex items-start"><span class="text-[#8DC63F] font-bold text-xl mr-3">✔</span><div><strong>Ventana de Contexto Gigante:</strong> Procesa hasta 1 millón de tokens, permitiendo analizar libros y vídeos largos de una sola vez.</div></li>
+                     <li class="flex items-start"><span class="text-[#8DC63F] font-bold text-xl mr-3">✔</span><div><strong>Generación de Vídeo con Audio:</strong> El modelo VEO3 crea vídeos de alta calidad con sonido, una capacidad diferenciadora.</div></li>
+                </ul>
+            </div>
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-3xl font-bold mb-4 text-center text-[#EC008C]">💬 ChatGPT: Precisión Artística y Control</h2>
+                <p class="mb-6 text-gray-600">ChatGPT, de OpenAI, brilla por su precisión, creatividad y la capacidad de seguir instrucciones complejas al pie de la letra. Es el maestro de la generación de texto, imágenes y análisis de datos finos.</p>
+                 <ul class="space-y-3">
+                    <li class="flex items-start"><span class="text-[#F7941D] font-bold text-xl mr-3">✔</span><div><strong>Calidad de Texto e Imagen:</strong> Genera textos más humanos e imágenes que siguen prompts complejos con una fidelidad superior.</div></li>
+                    <li class="flex items-start"><span class="text-[#F7941D] font-bold text-xl mr-3">✔</span><div><strong>Análisis de Datos Fino:</strong> Interpreta y visualiza datos con gran precisión, cometiendo menos errores o "alucinaciones".</div></li>
+                    <li class="flex items-start"><span class="text-[#F7941D] font-bold text-xl mr-3">✔</span><div><strong>Interacción por Voz Superior:</strong> Su modelo de voz avanzado ofrece una conversación mucho más natural y humana.</div></li>
+                     <li class="flex items-start"><span class="text-[#F7941D] font-bold text-xl mr-3">✔</span><div><strong>GPTs Personalizables:</strong> Permite crear agentes especializados (GPTs) que pueden realizar acciones en herramientas externas.</div></li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="comparativa" class="bg-gray-50 rounded-lg shadow-inner p-6 md:p-8 mb-12">
+            <h2 class="text-3xl md:text-4xl font-bold text-center mb-8">Comparativa Directa: Habilidades Clave</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-bold text-center mb-4">Profundidad de Investigación</h3>
+                    <p class="text-sm text-gray-600 text-center mb-4">Gemini demuestra una capacidad superior para la investigación exhaustiva, accediendo a un número significativamente mayor de fuentes para construir sus informes.</p>
+                    <div class="chart-container">
+                        <canvas id="researchChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-bold text-center mb-4">Capacidades Creativas y de Texto</h3>
+                     <p class="text-sm text-gray-600 text-center mb-4">Ambas IAs son creativas, pero con especialidades distintas. ChatGPT domina en la calidad de imagen y texto, mientras que Gemini lidera en la innovadora generación de vídeo.</p>
+                    <div class="chart-container">
+                        <canvas id="creativeChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-bold text-center mb-4">Precisión en Tareas Específicas</h3>
+                    <p class="text-sm text-gray-600 text-center mb-4">A la hora de ejecutar tareas que requieren alta precisión, como generar archivos o analizar datos detalladamente, ChatGPT tiende a ser más fiable y directo.</p>
+                    <div class="chart-container">
+                        <canvas id="accuracyChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-bold text-center mb-4">Memoria y Procesamiento (Ventana de Contexto)</h3>
+                    <p class="text-sm text-gray-600 text-center mb-4">La ventana de contexto determina cuánta información puede "recordar" la IA en una conversación. Gemini tiene una ventaja masiva, permitiéndole manejar tareas mucho más complejas.</p>
+                    <div class="grid grid-cols-2 gap-4 h-full content-center">
+                        <div class="kpi-card border-l-4 border-[#00AEEF]">
+                            <div class="kpi-number text-[#00AEEF]">1M</div>
+                            <div class="kpi-label">Tokens de Gemini</div>
+                        </div>
+                        <div class="kpi-card border-l-4 border-[#EC008C]">
+                            <div class="kpi-number text-[#EC008C]">128K</div>
+                            <div class="kpi-label">Tokens de ChatGPT-4</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+        
+        <section id="ecosistema" class="bg-white rounded-lg shadow-lg p-6 md:p-8 mb-12">
+            <h2 class="text-3xl md:text-4xl font-bold text-center mb-8">Ecosistemas y Planes de Pago</h2>
+             <p class="text-center text-gray-600 max-w-3xl mx-auto mb-10">Más allá del chat, el valor real reside en cómo se integran estas herramientas en tu flujo de trabajo. Sus planes de pago desbloquean capacidades y ecosistemas radicalmente diferentes.</p>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                <div>
+                    <h3 class="text-2xl font-bold text-[#00AEEF] mb-4">Gemini Pro: Integración Total</h3>
+                    <p class="text-gray-600 mb-6">El plan Pro de Gemini se enfoca en potenciar el ecosistema de Google, ofreciendo almacenamiento masivo y acceso a herramientas exclusivas que lo convierten en un centro de productividad.</p>
+                    <div class="space-y-4">
+                        <div class="flow-chart-item"><span class="flow-chart-icon">📝</span> Acceso a Notebook LM</div>
+                        <div class="flow-chart-item"><span class="flow-chart-icon">🌊</span> Programas como Flow</div>
+                        <div class="flow-chart-item"><span class="flow-chart-icon">☁️</span> 2 TB en Google Drive</div>
+                        <div class="flow-chart-item"><span class="flow-chart-icon">📹</span> Videollamadas y Pantalla Compartida</div>
+                    </div>
+                </div>
+                 <div>
+                    <h3 class="text-2xl font-bold text-[#EC008C] mb-4">ChatGPT Plus: Organización y Expansión</h3>
+                    <p class="text-gray-600 mb-6">ChatGPT Plus se centra en la organización y la expansión de las capacidades del modelo base, con una función única de "Proyectos" y el acceso a la tienda de GPTs para extender su funcionalidad.</p>
+                     <div class="space-y-4">
+                        <div class="flow-chart-item"><span class="flow-chart-icon">📂</span> Función de Proyectos para organizar chats</div>
+                        <div class="flow-chart-item"><span class="flow-chart-icon">🤖</span> Creación y uso de GPTs avanzados</div>
+                        <div class="flow-chart-item"><span class="flow-chart-icon">🔗</span> Conexiones con apps externas (Webhooks)</div>
+                        <div class="flow-chart-item"><span class="flow-chart-icon">📈</span> Acceso prioritario a nuevos modelos</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="conclusion" class="text-center p-6 md:p-10 bg-gray-800 text-white rounded-lg">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6">Entonces, ¿Cuál Deberías Elegir?</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                <div class="bg-gray-700 p-6 rounded-lg">
+                    <h3 class="text-2xl font-bold text-[#00AEEF] mb-3">Elige Gemini si...</h3>
+                    <ul class="text-left space-y-2 list-inside">
+                        <li>✅ Necesitas realizar investigaciones profundas y exhaustivas.</li>
+                        <li>✅ Trabajas constantemente con el ecosistema de Google.</li>
+                        <li>✅ Quieres crear aplicaciones o visualizaciones sin código.</li>
+                        <li>✅ Necesitas procesar documentos o vídeos muy largos.</li>
+                    </ul>
+                </div>
+                <div class="bg-gray-700 p-6 rounded-lg">
+                    <h3 class="text-2xl font-bold text-[#EC008C] mb-3">Elige ChatGPT si...</h3>
+                    <ul class="text-left space-y-2 list-inside">
+                        <li>✅ Priorizas la calidad y creatividad en textos e imágenes.</li>
+                        <li>✅ Necesitas seguir instrucciones muy específicas y detalladas.</li>
+                        <li>✅ Buscas la interacción por voz más natural del mercado.</li>
+                        <li>✅ Quieres automatizar tareas en otras aplicaciones.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="text-center p-6 bg-white mt-8">
+        <p class="text-gray-500">Infografía generada por IA. Datos basados en el análisis comparativo de información proporcionada por ricardo.quiroz@yahoo.com</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const wrapLabel = (label, maxLength = 16) => {
+                if (typeof label !== 'string' || label.length <= maxLength) {
+                    return label;
+                }
+                const words = label.split(' ');
+                let currentLine = '';
+                const lines = [];
+                for (const word of words) {
+                    if ((currentLine + ' ' + word).trim().length > maxLength) {
+                        lines.push(currentLine.trim());
+                        currentLine = word;
+                    } else {
+                        currentLine = (currentLine + ' ' + word).trim();
+                    }
+                }
+                if (currentLine) {
+                    lines.push(currentLine.trim());
+                }
+                return lines;
+            };
+
+            const tooltipTitleCallback = (tooltipItems) => {
+                const item = tooltipItems[0];
+                let label = item.chart.data.labels[item.dataIndex];
+                if (Array.isArray(label)) {
+                    return label.join(' ');
+                } else {
+                    return label;
+                }
+            };
+            
+            const sharedTooltipOptions = {
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            title: tooltipTitleCallback
+                        }
+                    }
+                }
+            };
+
+            const researchCtx = document.getElementById('researchChart').getContext('2d');
+            new Chart(researchCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['ChatGPT', 'Gemini'],
+                    datasets: [{
+                        label: 'Número de Fuentes Utilizadas',
+                        data: [15, 50],
+                        backgroundColor: ['#EC008C', '#00AEEF'],
+                        borderColor: ['#EC008C', '#00AEEF'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    ...sharedTooltipOptions,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Cantidad de Fuentes'
+                            }
+                        }
+                    },
+                    plugins: {
+                        ...sharedTooltipOptions.plugins,
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+
+            const creativeCtx = document.getElementById('creativeChart').getContext('2d');
+            new Chart(creativeCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['Calidad de Imagen', 'Generación de Vídeo', 'Seguir Instrucciones', wrapLabel('Texto tipo Humano')],
+                    datasets: [{
+                        label: 'ChatGPT',
+                        data: [9, 2, 9, 9],
+                        backgroundColor: 'rgba(236, 0, 140, 0.2)',
+                        borderColor: '#EC008C',
+                        pointBackgroundColor: '#EC008C',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#EC008C'
+                    }, {
+                        label: 'Gemini',
+                        data: [7, 9, 6, 7],
+                        backgroundColor: 'rgba(0, 174, 239, 0.2)',
+                        borderColor: '#00AEEF',
+                        pointBackgroundColor: '#00AEEF',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#00AEEF'
+                    }]
+                },
+                options: {
+                    ...sharedTooltipOptions,
+                    maintainAspectRatio: false,
+                     scales: {
+                        r: {
+                            angleLines: {
+                                display: true
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 10
+                        }
+                    }
+                }
+            });
+
+            const accuracyCtx = document.getElementById('accuracyChart').getContext('2d');
+            new Chart(accuracyCtx, {
+                type: 'bar',
+                data: {
+                    labels: [wrapLabel('Generación de Archivos (SRT/CSV)'), wrapLabel('Análisis de Datos Fino')],
+                    datasets: [{
+                        label: 'ChatGPT',
+                        data: [9.5, 9],
+                        backgroundColor: '#EC008C',
+                        borderColor: '#EC008C',
+                        borderWidth: 1
+                    }, {
+                        label: 'Gemini',
+                        data: [6, 7],
+                        backgroundColor: '#00AEEF',
+                        borderColor: '#00AEEF',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    ...sharedTooltipOptions,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            suggestedMax: 10,
+                             title: {
+                                display: true,
+                                text: 'Puntuación de Precisión (0-10)'
+                            }
+                        }
+                    },
+                    plugins: {
+                       ...sharedTooltipOptions.plugins,
+                        legend: {
+                           position: 'top',
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
