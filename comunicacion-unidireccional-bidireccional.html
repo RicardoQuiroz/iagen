@@ -153,11 +153,15 @@
             color: white;
             padding: 12px 20px;
             border-radius: 10px;
-            cursor: move;
+            cursor: grab;
             user-select: none;
             touch-action: none;
             transition: all 0.3s;
             font-weight: 500;
+        }
+
+        .word-item:active {
+            cursor: grabbing;
         }
 
         .word-item:hover {
@@ -166,7 +170,9 @@
         }
 
         .word-item.dragging {
-            opacity: 0.5;
+            opacity: 0.4;
+            transform: scale(0.9);
+            cursor: grabbing;
         }
 
         .word-item.selected {
@@ -490,41 +496,64 @@
             draggedElement = e.target;
             e.target.classList.add('dragging');
             e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/html', e.target.innerHTML);
+            e.dataTransfer.setData('text/plain', e.target.dataset.word);
         }
 
         function handleDragEnd(e) {
             e.target.classList.remove('dragging');
+            draggedElement = null;
         }
 
         function handleDragOver(e) {
-            e.preventDefault();
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+            const zone = e.target.closest('.drop-zone');
+            if (zone) {
+                zone.classList.add('drag-over');
+            }
             e.dataTransfer.dropEffect = 'move';
-            e.target.classList.add('drag-over');
             return false;
         }
 
         function handleDragLeave(e) {
-            e.target.classList.remove('drag-over');
+            const zone = e.target.closest('.drop-zone');
+            if (zone) {
+                zone.classList.remove('drag-over');
+            }
         }
 
         function handleDrop(e) {
-            e.stopPropagation();
-            e.preventDefault();
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
 
             const zone = e.target.closest('.drop-zone');
+            if (!zone) return false;
+            
             zone.classList.remove('drag-over');
 
             if (draggedElement && zone) {
-                // Si la zona ya tiene una palabra, devolverla
+                // Si la zona ya tiene una palabra, devolverla al contenedor
                 const existingWord = zone.querySelector('.word-item');
-                if (existingWord) {
-                    document.getElementById('wordsContainer').appendChild(existingWord);
+                if (existingWord && existingWord !== draggedElement) {
+                    const container = document.getElementById('wordsContainer');
+                    container.appendChild(existingWord);
+                    const parentZone = existingWord.closest('.drop-zone');
+                    if (parentZone) {
+                        parentZone.classList.remove('filled');
+                    }
                 }
 
-                // Colocar la nueva palabra
+                // Mover físicamente el elemento arrastrado a la zona
                 zone.appendChild(draggedElement);
                 zone.classList.add('filled');
+                
+                // Limpiar el estilo de arrastre
+                draggedElement.classList.remove('dragging');
                 draggedElement = null;
             }
 
@@ -541,9 +570,11 @@
             // Si está en una zona, devolverla
             const parentZone = word.closest('.drop-zone');
             if (parentZone) {
-                document.getElementById('wordsContainer').appendChild(word);
+                const container = document.getElementById('wordsContainer');
+                container.appendChild(word);
                 parentZone.classList.remove('filled');
                 word.classList.remove('selected');
+                selectedWord = null;
                 return;
             }
 
@@ -564,8 +595,10 @@
 
             // Si la zona ya tiene una palabra, devolverla
             const existingWord = zone.querySelector('.word-item');
-            if (existingWord) {
-                document.getElementById('wordsContainer').appendChild(existingWord);
+            if (existingWord && existingWord !== selectedWord) {
+                const container = document.getElementById('wordsContainer');
+                container.appendChild(existingWord);
+                existingWord.classList.remove('selected');
             }
 
             // Colocar la palabra seleccionada
