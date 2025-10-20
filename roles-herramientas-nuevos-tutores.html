@@ -6,29 +6,21 @@
   <title>Roles del tutor virtual — Drag & Drop</title>
   <style>
     :root{
-      --azul:#2563eb; /* Tailwind blue-600 like */
-      --azul-osc:#1e40af; /* blue-800 */
-      --claro:#f1f5f9; /* slate-100 */
-      --gris:#334155; /* slate-700 */
-      --card:#e2e8f0; /* slate-200 */
-      --ok:#16a34a; /* green-600 */
-      --err:#dc2626; /* red-600 */
+      --azul:#2563eb; --azul-osc:#1e40af; --claro:#f1f5f9; --gris:#334155; --card:#e2e8f0; --ok:#16a34a; --err:#dc2626;
     }
     *{box-sizing:border-box}
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Inter,Arial,sans-serif;background:var(--claro);color:var(--gris)}
-    header{padding:20px;display:flex;align-items:center;justify-content:space-between;background:white;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+    header{padding:20px;display:flex;align-items:center;justify-content:space-between;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.06)}
     header h1{margin:0;font-size:1.1rem;font-weight:700}
     .btn{border:0;border-radius:12px;padding:10px 14px;font-weight:600;cursor:pointer}
     .btn-primary{background:var(--azul);color:#fff}
-    .btn-secondary{background:white;border:2px solid var(--azul);color:var(--azul)}
+    .btn-secondary{background:#fff;border:2px solid var(--azul);color:var(--azul)}
     .btn-ghost{background:transparent;border:0;color:var(--azul);text-decoration:underline}
     .btn:disabled{opacity:.55;cursor:not-allowed}
 
-    /* Screens */
     .screen{max-width:1100px;margin:24px auto;padding:16px}
-    .card{background:white;border-radius:18px;box-shadow:0 8px 30px rgba(0,0,0,.06)}
+    .card{background:#fff;border-radius:18px;box-shadow:0 8px 30px rgba(0,0,0,.06)}
 
-    /* Start screen */
     #startScreen{display:block}
     .start-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;padding:22px}
     label{font-weight:600;margin-bottom:8px;display:block}
@@ -36,58 +28,27 @@
     .hint{font-size:.9rem;color:#475569;margin-top:8px}
     .pill{display:inline-block;background:var(--azul);color:#fff;border-radius:999px;padding:6px 10px;font-weight:700;margin:6px 8px 0 0}
 
-    /* Activity layout */
     #activity{display:none}
     .layout{display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:18px}
     .bank,.sentences{background:#fff;border-radius:18px;padding:16px}
     .bank h3,.sentences h3{margin:0 0 10px}
 
     .chips{display:flex;flex-wrap:wrap;gap:10px}
-    .chip{user-select:none;background:var(--azul);color:#fff;border-radius:14px;padding:10px 12px;font-weight:700;cursor:grab;box-shadow:0 6px 16px rgba(37,99,235,.25)}
+    .chip{user-select:none;background:var(--azul);color:#fff;border-radius:14px;padding:10px 12px;font-weight:700;cursor:grab;box-shadow:0 6px 16px rgba(37,99,235,.25);-webkit-user-drag:element;touch-action:none}
     .chip:active{cursor:grabbing}
-
-    .row{display:grid;grid-template-columns:1fr 180px;align-items:center;gap:12px;margin:12px 0;padding:10px;border-radius:14px;background:var(--card)}
-    .bubble{background:#5b9cf3;color:#fff;border-radius:14px;padding:16px;font-weight:800;text-align:center;box-shadow:inset 0 -2px 0 rgba(0,0,0,.06)}
-
-    .drop{background:white;border:2px dashed #94a3b8;border-radius:14px;min-height:52px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#64748b}
-    .drop.hover{border-color:var(--azul)}
-    .drop.filled{border-style:solid}
-
-    .controls{display:flex;gap:10px;justify-content:flex-end;padding:14px}
-    .score{padding:10px 14px;font-weight:700}
-
-    .tag-ok{color:var(--ok)}
-    .tag-err{color:var(--err)}
-
-    /* Modal */
-    dialog{border:0;border-radius:18px;padding:0;box-shadow:0 20px 50px rgba(0,0,0,.25);max-width:720px}
-    .modal-body{padding:20px}
-    .modal-header{padding:16px 20px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center}
-    table{width:100%;border-collapse:collapse}
-    th,td{padding:10px;border-bottom:1px solid #e2e8f0;text-align:left}
-    th{background:#f8fafc}
-
-    @media (max-width: 900px){
-      .layout{grid-template-columns:1fr}
-      .row{grid-template-columns:1fr;gap:10px}
-    }
-      .chip{user-select:none;background:var(--azul);color:#fff;border-radius:14px;padding:10px 12px;font-weight:700;cursor:grab;box-shadow:0 6px 16px rgba(37,99,235,.25);-webkit-user-drag:element}
     .chip.selected{outline:3px solid #fbbf24; outline-offset:3px}
+    .chip.dragging{position:fixed;left:0;top:0;transform:translate(var(--dx,0px), var(--dy,0px));z-index:9999;opacity:.95;pointer-events:none}
 
     .row{display:grid;grid-template-columns:1fr 180px;align-items:center;gap:12px;margin:12px 0;padding:10px;border-radius:14px;background:var(--card)}
     .bubble{background:#5b9cf3;color:#fff;border-radius:14px;padding:16px;font-weight:800;text-align:center;box-shadow:inset 0 -2px 0 rgba(0,0,0,.06)}
 
-    .drop{background:white;border:2px dashed #94a3b8;border-radius:14px;min-height:52px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#64748b}
+    .drop{background:#fff;border:2px dashed #94a3b8;border-radius:14px;min-height:52px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#64748b}
     .drop.hover{border-color:var(--azul)}
     .drop.filled{border-style:solid}
 
     .controls{display:flex;gap:10px;justify-content:flex-end;padding:14px}
     .score{padding:10px 14px;font-weight:700}
 
-    .tag-ok{color:var(--ok)}
-    .tag-err{color:var(--err)}
-
-    /* Modal */
     dialog{border:0;border-radius:18px;padding:0;box-shadow:0 20px 50px rgba(0,0,0,.25);max-width:720px}
     .modal-body{padding:20px}
     .modal-header{padding:16px 20px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center}
@@ -95,13 +56,7 @@
     th,td{padding:10px;border-bottom:1px solid #e2e8f0;text-align:left}
     th{background:#f8fafc}
 
-    @media (max-width: 900px){
-      .layout{grid-template-columns:1fr}
-      .row{grid-template-columns:1fr;gap:10px}
-    }
-      /* Pointer-based drag (fallback for iOS / GH Pages) */
-    .chip{touch-action:none}
-    .chip.dragging{position:fixed;left:0;top:0;transform:translate(var(--dx,0px), var(--dy,0px));z-index:9999;opacity:.95;pointer-events:none}
+    @media (max-width: 900px){.layout{grid-template-columns:1fr}.row{grid-template-columns:1fr;gap:10px}}
   </style>
 </head>
 <body>
@@ -112,7 +67,6 @@
     </div>
   </header>
 
-  <!-- Start Screen -->
   <section id="startScreen" class="screen">
     <div class="card start-grid">
       <div>
@@ -141,19 +95,15 @@
     </div>
   </section>
 
-  <!-- Activity Screen -->
   <section id="activity" class="screen">
     <div class="layout">
-      <!-- Bank -->
       <div class="bank card">
         <h3>Palabras</h3>
         <div id="bank" class="chips" aria-label="Banco de palabras"></div>
       </div>
 
-      <!-- Sentences & dropzones -->
       <div class="sentences card">
         <h3>Nuevos roles de los tutores</h3>
-
         <div class="row">
           <div class="bubble">Produce y edita los videos propios con una buena calidad</div>
           <div class="drop" data-accept="Productor" aria-label="Destino 1"></div>
@@ -178,7 +128,6 @@
           <div class="bubble">Analiza e interpreta la información para determinar qué funciona y qué no</div>
           <div class="drop" data-accept="Analista de datos" aria-label="Destino 6"></div>
         </div>
-
         <div class="controls">
           <span id="nicknameOut" class="score"></span>
           <span id="scoreOut" class="score"></span>
@@ -189,7 +138,6 @@
     </div>
   </section>
 
-  <!-- Scores modal -->
   <dialog id="scoresModal">
     <div class="modal-header">
       <strong>Tabla de scores (local)</strong>
@@ -201,9 +149,7 @@
       </div>
       <div style="max-height:50vh;overflow:auto">
         <table id="scoresTable" aria-label="Tabla de scores">
-          <thead>
-            <tr><th>Fecha</th><th>Nickname</th><th>Score</th></tr>
-          </thead>
+          <thead><tr><th>Fecha</th><th>Nickname</th><th>Score</th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
@@ -211,290 +157,115 @@
   </dialog>
 
   <script>
-    // --------- State & constants ---------
-    const WORDS = [
-      "Facilitador",
-      "Comunicador",
-      "Productor",
-      "Innovador",
-      "Community Manager",
-      "Analista de datos"
-    ];
-
+    // ===== State & helpers =====
+    const WORDS = ["Facilitador","Comunicador","Productor","Innovador","Community Manager","Analista de datos"];
     const bank = document.getElementById('bank');
     const drops = () => Array.from(document.querySelectorAll('.drop'));
-
     let nickname = '';
 
-    // --------- Utilities ---------
     const isNumericNick = (v) => /^\d+$/.test((v||'').trim());
+    const el = (tag, cls, text)=>{const e=document.createElement(tag); if(cls) e.className=cls; if(text) e.textContent=text; return e;};
+    function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+    function nowISO(){const d=new Date();const p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;}
 
-    function el(tag, cls, text){
-      const e = document.createElement(tag);
-      if(cls) e.className = cls;
-      if(text) e.textContent = text;
-      return e;
-    }
-
-    function shuffle(array){
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-      return array;
-    }
-
-    function nowISO(){
-      const d = new Date();
-      const pad = (n)=> String(n).padStart(2,'0');
-      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    }
-
-    // --------- Scores (localStorage) ---------
-    const STORAGE_KEY = 'roles_tutor_scores_v1';
-    function getScores(){
-      try{ return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }catch{ return [] }
-    }
-    function saveScore(entry){
-      const arr = getScores();
-      arr.push(entry);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
-    }
-    function clearScores(){ localStorage.removeItem(STORAGE_KEY); }
+    // ===== Scores =====
+    const STORAGE_KEY='roles_tutor_scores_v1';
+    const getScores=()=>{try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]')}catch{return []}};
+    const saveScore=(entry)=>{const arr=getScores();arr.push(entry);localStorage.setItem(STORAGE_KEY,JSON.stringify(arr));};
+    const clearScores=()=>localStorage.removeItem(STORAGE_KEY);
 
     function openScores(){
-      const modal = document.getElementById('scoresModal');
-      const tbody = document.querySelector('#scoresTable tbody');
+      const modal=document.getElementById('scoresModal');
+      const tbody=document.querySelector('#scoresTable tbody');
       tbody.innerHTML='';
-      const rows = getScores();
-      if(rows.length===0){
-        const tr = document.createElement('tr');
-        const td = document.createElement('td');
-        td.colSpan = 3; td.textContent = 'Sin registros todavía.'; tr.appendChild(td);
-        tbody.appendChild(tr);
-      } else {
-        rows.forEach(r => {
-          const tr = document.createElement('tr');
-          tr.appendChild(el('td', null, r.fecha));
-          tr.appendChild(el('td', null, r.nickname));
-          tr.appendChild(el('td', null, String(r.score)));
-          tbody.appendChild(tr);
-        });
+      const rows=getScores();
+      if(rows.length===0){const tr=document.createElement('tr');const td=document.createElement('td');td.colSpan=3;td.textContent='Sin registros todavía.';tr.appendChild(td);tbody.appendChild(tr);} else {
+        rows.forEach(r=>{const tr=document.createElement('tr');tr.appendChild(el('td',null,r.fecha));tr.appendChild(el('td',null,r.nickname));tr.appendChild(el('td',null,String(r.score)));tbody.appendChild(tr);});
       }
       modal.showModal();
     }
+    function downloadScores(){const data=JSON.stringify(getScores(),null,2);const blob=new Blob([data],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='scores_roles_tutor.json';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);}
 
-    function downloadScores(){
-      const data = JSON.stringify(getScores(), null, 2);
-      const blob = new Blob([data], {type:'application/json'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = 'scores_roles_tutor.json';
-      document.body.appendChild(a); a.click(); a.remove();
-      URL.revokeObjectURL(url);
-    }
-
-    // --------- Rendering ---------
+    // ===== Rendering =====
+    let selectedChip=null; let dragIdCounter=0; let peActive=false;
     function renderBank(){
       bank.innerHTML='';
-      shuffle(WORDS.slice()).forEach(w => {
-        const chip = el('div','chip',w);
+      shuffle(WORDS.slice()).forEach(w=>{
+        const chip=el('div','chip',w);
         chip.setAttribute('draggable','true');
-        chip.dataset.role = w;
-        chip.tabIndex = 0;
+        chip.dataset.role=w; chip.tabIndex=0;
         chip.addEventListener('dragstart', onDragStart);
-        chip.addEventListener('dblclick', ()=> bank.appendChild(chip));
-        chip.addEventListener('click', () => {
-          if(selectedChip && selectedChip !== chip){ selectedChip.classList.remove('selected'); }
-          selectedChip = (selectedChip === chip) ? null : chip;
-          chip.classList.toggle('selected');
-        });
-        enablePointerDrag(chip); // pointer events fallback
+        chip.addEventListener('dblclick',()=>bank.appendChild(chip));
+        chip.addEventListener('click',()=>{if(selectedChip&&selectedChip!==chip)selectedChip.classList.remove('selected');selectedChip=(selectedChip===chip)?null:chip;chip.classList.toggle('selected');});
+        enablePointerDrag(chip);
         bank.appendChild(chip);
       });
     }
-          selectedChip = (selectedChip === chip) ? null : chip;
-          chip.classList.toggle('selected');
-        });
-        bank.appendChild(chip);
-      });
-    }
+    function clearDrops(){drops().forEach(d=>{d.classList.remove('filled');d.textContent='Suelta aquí';});}
 
-    function clearDrops(){
-      drops().forEach(d => { d.classList.remove('filled'); d.textContent = 'Suelta aquí'; });
-    }
-
-    // --------- Drag & Drop (HTML5) ---------
-    let dragIdCounter = 0;
-    let selectedChip = null; // Fallback: click-to-place
-
-    function onDragStart(ev){
-      const id = `drag-${dragIdCounter++}`;
-      ev.target.id = id;
-      ev.dataTransfer.effectAllowed = 'move';
-      // Some browsers (older Safari) only accept 'text'
-      try{ ev.dataTransfer.setData('text/plain', id); }catch{}
-      try{ ev.dataTransfer.setData('text', id); }catch{}
-    }
-    function onDragOver(ev){ ev.preventDefault(); ev.dataTransfer.dropEffect = 'move'; ev.currentTarget.classList.add('hover'); }
-    function onDragLeave(ev){ ev.currentTarget.classList.remove('hover'); }
-    function placeChipInDrop(chip, dropEl){
-      if(!chip || !dropEl) return;
-      const existing = dropEl.querySelector('.chip');
-      if(existing) bank.appendChild(existing);
-      dropEl.innerHTML='';
-      chip.classList.remove('dragging');
-      chip.style.removeProperty('--dx');
-      chip.style.removeProperty('--dy');
-      dropEl.appendChild(chip);
-      dropEl.classList.add('filled');
-    }
-    function onDrop(ev){
-      ev.preventDefault();
-      ev.currentTarget.classList.remove('hover');
-      const id = ev.dataTransfer.getData('text/plain') || ev.dataTransfer.getData('text');
-      const chip = document.getElementById(id);
-      placeChipInDrop(chip, ev.currentTarget);
-    }
-
+    // ===== HTML5 Drag & Drop =====
+    function onDragStart(ev){const id=`drag-${dragIdCounter++}`;ev.target.id=id;ev.dataTransfer.effectAllowed='move';try{ev.dataTransfer.setData('text/plain',id)}catch{}try{ev.dataTransfer.setData('text',id)}catch{}}
+    function onDragOver(ev){ev.preventDefault();ev.dataTransfer.dropEffect='move';ev.currentTarget.classList.add('hover');}
+    function onDragLeave(ev){ev.currentTarget.classList.remove('hover');}
+    function placeChipInDrop(chip,dropEl){if(!chip||!dropEl)return;const existing=dropEl.querySelector('.chip');if(existing)bank.appendChild(existing);dropEl.innerHTML='';chip.classList.remove('dragging');chip.style.removeProperty('--dx');chip.style.removeProperty('--dy');dropEl.appendChild(chip);dropEl.classList.add('filled');}
+    function onDrop(ev){ev.preventDefault();ev.currentTarget.classList.remove('hover');const id=ev.dataTransfer.getData('text/plain')||ev.dataTransfer.getData('text');const chip=document.getElementById(id);placeChipInDrop(chip,ev.currentTarget);}
     function enableDropzones(){
-      drops().forEach(d => {
-        d.textContent = 'Suelta aquí';
-        d.addEventListener('dragover', onDragOver);
-        d.addEventListener('dragleave', onDragLeave);
-        d.addEventListener('drop', onDrop);
-        // click-to-place fallback
-        d.addEventListener('click', () => {
-          if(selectedChip){
-            placeChipInDrop(selectedChip, d);
-            selectedChip.classList.remove('selected');
-            selectedChip = null;
-          }
-        });
+      drops().forEach(d=>{
+        d.textContent='Suelta aquí'; d.addEventListener('dragover',onDragOver); d.addEventListener('dragleave',onDragLeave); d.addEventListener('drop',onDrop);
+        d.addEventListener('click',()=>{if(selectedChip){placeChipInDrop(selectedChip,d);selectedChip.classList.remove('selected');selectedChip=null;}});
       });
-      bank.addEventListener('dragover', (e)=>{ e.preventDefault(); e.dataTransfer.dropEffect='move'; });
-      bank.addEventListener('drop', (e)=>{
-        e.preventDefault();
-        const id = e.dataTransfer.getData('text/plain') || e.dataTransfer.getData('text');
-        const chip = document.getElementById(id);
-        if(!chip) return;
-        chip.classList.remove('dragging');
-        bank.appendChild(chip);
-        chip.classList.remove('selected');
-      });
+      bank.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='move';});
+      bank.addEventListener('drop',e=>{e.preventDefault();const id=e.dataTransfer.getData('text/plain')||e.dataTransfer.getData('text');const chip=document.getElementById(id);if(!chip)return;chip.classList.remove('dragging');bank.appendChild(chip);chip.classList.remove('selected');});
     }
 
-    // --------- Pointer Events drag (works on iOS/Android & GH Pages) ---------
-    let peActive = false;
+    // ===== Pointer Events fallback =====
     function enablePointerDrag(chip){
-      let startX=0, startY=0;
-      function onPointerDown(e){
-        // if HTML5 dragstart fires, prefer that
-        if (e.button !== undefined && e.button !== 0) return; // left click / touch only
-        peActive = true;
-        startX = e.clientX; startY = e.clientY;
-        chip.classList.add('dragging');
-        chip.setPointerCapture(e.pointerId);
-        e.preventDefault();
-      }
-      function onPointerMove(e){
-        if(!peActive || !chip.classList.contains('dragging')) return;
-        const dx = e.clientX - startX; const dy = e.clientY - startY;
-        chip.style.setProperty('--dx', dx + 'px');
-        chip.style.setProperty('--dy', dy + 'px');
-      }
-      function onPointerUp(e){
-        if(!peActive) return;
-        peActive = false;
-        chip.releasePointerCapture(e.pointerId);
-        // Find drop under pointer
-        const els = document.elementsFromPoint(e.clientX, e.clientY);
-        const targetDrop = els.find(el => el.classList && el.classList.contains('drop'));
-        if(targetDrop){
-          placeChipInDrop(chip, targetDrop);
-        } else {
-          chip.classList.remove('dragging');
-          chip.style.removeProperty('--dx');
-          chip.style.removeProperty('--dy');
-          bank.appendChild(chip);
-        }
-      }
-      chip.addEventListener('pointerdown', onPointerDown);
-      chip.addEventListener('pointermove', onPointerMove);
-      chip.addEventListener('pointerup', onPointerUp);
-      chip.addEventListener('pointercancel', onPointerUp);
-    }
-        });
-      });
-      // allow dropping back to bank
-      bank.addEventListener('dragover', (e)=>{ e.preventDefault(); e.dataTransfer.dropEffect='move'; });
-      bank.addEventListener('drop', (e)=>{
-        e.preventDefault();
-        const id = e.dataTransfer.getData('text/plain') || e.dataTransfer.getData('text');
-        const chip = document.getElementById(id);
-        if(!chip) return;
-        bank.appendChild(chip);
-        chip.classList.remove('selected');
-      });
+      let startX=0,startY=0;
+      function onPointerDown(e){if(e.button!==undefined&&e.button!==0)return;peActive=true;startX=e.clientX;startY=e.clientY;chip.classList.add('dragging');if(chip.setPointerCapture)chip.setPointerCapture(e.pointerId);e.preventDefault();}
+      function onPointerMove(e){if(!peActive||!chip.classList.contains('dragging'))return;const dx=e.clientX-startX,dy=e.clientY-startY;chip.style.setProperty('--dx',dx+'px');chip.style.setProperty('--dy',dy+'px');}
+      function onPointerUp(e){if(!peActive)return;peActive=false;if(chip.releasePointerCapture)chip.releasePointerCapture(e.pointerId);const els=document.elementsFromPoint(e.clientX,e.clientY);const targetDrop=els.find(el=>el.classList&&el.classList.contains('drop'));if(targetDrop){placeChipInDrop(chip,targetDrop);}else{chip.classList.remove('dragging');chip.style.removeProperty('--dx');chip.style.removeProperty('--dy');bank.appendChild(chip);}}
+      chip.addEventListener('pointerdown',onPointerDown); chip.addEventListener('pointermove',onPointerMove); chip.addEventListener('pointerup',onPointerUp); chip.addEventListener('pointercancel',onPointerUp);
     }
 
-    // --------- Activity control ---------
+    // ===== Activity control =====
     function grade(){
-      let correct = 0;
-      drops().forEach(d => {
-        const expected = d.dataset.accept;
-        const chip = d.querySelector('.chip');
-        if(chip){
-          const ok = chip.dataset.role === expected;
-          d.style.borderColor = ok? 'var(--ok)' : 'var(--err)';
-          d.style.color = ok? 'var(--ok)' : 'var(--err)';
-          if(ok) correct++;
-        } else {
-          d.style.borderColor = 'var(--err)';
-          d.style.color = 'var(--err)';
-        }
-      });
-      const scoreLabel = document.getElementById('scoreOut');
-      const nickLabel = document.getElementById('nicknameOut');
-      scoreLabel.textContent = `Puntaje: ${correct} / 6`;
-      nickLabel.textContent = `Nickname: ${nickname}`;
-      saveScore({fecha: nowISO(), nickname, score: correct});
+      let correct=0; drops().forEach(d=>{const expected=d.dataset.accept;const chip=d.querySelector('.chip');if(chip){const ok=chip.dataset.role===expected;d.style.borderColor=ok?'var(--ok)':'var(--err)';d.style.color=ok?'var(--ok)':'var(--err)';if(ok)correct++;}else{d.style.borderColor='var(--err)';d.style.color='var(--err)';}});
+      document.getElementById('scoreOut').textContent=`Puntaje: ${correct} / 6`;
+      document.getElementById('nicknameOut').textContent=`Nickname: ${nickname}`;
+      saveScore({fecha:nowISO(),nickname,score:correct});
     }
+    function retry(){document.getElementById('scoreOut').textContent='';document.getElementById('nicknameOut').textContent='';clearDrops();renderBank();}
 
-    function retry(){
-      document.getElementById('scoreOut').textContent='';
-      document.getElementById('nicknameOut').textContent='';
-      clearDrops();
-      renderBank();
-    }
-
-    // --------- Screen flow ---------
+    // ===== Screen flow =====
     function startActivity(){
-      const v = document.getElementById('nick').value.trim();
-      if(!isNumericNick(v)){
-        alert('El nickname debe ser SOLO números. Intenta nuevamente.');
-        document.getElementById('nick').focus();
-        return;
-      }
-      nickname = v;
-      document.getElementById('startScreen').style.display='none';
-      document.getElementById('activity').style.display='block';
-      renderBank();
-      enableDropzones();
+      const v=document.getElementById('nick').value.trim();
+      if(!isNumericNick(v)){alert('El nickname debe ser SOLO números. Intenta nuevamente.');document.getElementById('nick').focus();return;}
+      nickname=v; document.getElementById('startScreen').style.display='none'; document.getElementById('activity').style.display='block'; renderBank(); enableDropzones();
     }
 
-    // --------- Wire up ---------
+    // ===== Wire up =====
     document.getElementById('startBtn').addEventListener('click', startActivity);
     document.getElementById('btnGrade').addEventListener('click', grade);
     document.getElementById('btnRetry').addEventListener('click', retry);
-
     document.getElementById('btnShowScores1').addEventListener('click', openScores);
     document.getElementById('closeScores').addEventListener('click', ()=>document.getElementById('scoresModal').close());
     document.getElementById('downloadJson').addEventListener('click', downloadScores);
+    document.getElementById('clearScores').addEventListener('click', ()=>{if(confirm('¿Borrar todos los scores guardados en este navegador?')){ clearScores(); alert('Listo.'); }});
 
-    document.getElementById('clearScores').addEventListener('click', ()=>{
-      if(confirm('¿Borrar todos los scores guardados en este navegador?')){ clearScores(); alert('Listo.'); }
-    });
+    // ===== Minimal test cases (console) =====
+    function runTests(){
+      const results=[]; const expect=(name,cond)=>results.push({name,ok:!!cond});
+      expect('isNumericNick("12345") true', isNumericNick('12345')===true);
+      expect('isNumericNick("12a45") false', isNumericNick('12a45')===false);
+      const expected=Array.from(document.querySelectorAll('.drop')).map(d=>d.dataset.accept);
+      expect('6 dropzones', expected.length===6);
+      expect('All labels present', ['Productor','Comunicador','Community Manager','Facilitador','Innovador','Analista de datos'].every(x=>expected.includes(x)));
+      renderBank(); const bankWords=Array.from(document.querySelectorAll('#bank .chip')).map(c=>c.textContent.trim());
+      expect('6 chips in bank', bankWords.length===6);
+      expect('All words present in bank', ['Facilitador','Comunicador','Productor','Innovador','Community Manager','Analista de datos'].every(x=>bankWords.includes(x)));
+      console.log('Test results:', results.map(r=>`${r.ok?'PASS':'FAIL'} - ${r.name}`));
+    }
+    runTests();
   </script>
 </body>
 </html>
