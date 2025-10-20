@@ -1,408 +1,415 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Comunicación Profesor–Estudiante · Drag & Drop</title>
-<style>
-  :root{
-    --bg:#f5f7fb;--card:#ffffff;--ink:#0f172a;--muted:#64748b;--brand:#2563eb;--brand-2:#60a5fa;--ok:#16a34a;--warn:#f59e0b;--error:#ef4444;
-    --chip:#e2e8f0;--chip-ink:#0f172a;--slot:#3b82f6;--slot-ink:#fff;--slot-soft:#93c5fd;
-    --ring: 0 0 0 3px rgba(37,99,235,.25);
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%;}
-  body{margin:0; font-family:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; color:var(--ink); background:var(--bg);} 
-  .container{max-width:980px; margin:0 auto; padding:16px;}
-  .card{background:var(--card); border-radius:16px; box-shadow:0 10px 20px rgba(2,8,23,.06); padding:20px;}
-  .title{font-weight:800; font-size:clamp(20px,4vw,28px); text-align:center; color:#1e293b; letter-spacing:.2px;}
-  .subtitle{color:var(--muted); text-align:center; margin-top:-6px;}
-  .row{display:flex; gap:12px; flex-wrap:wrap; align-items:center}
-  .btn{appearance:none; border:0; background:var(--brand); color:#fff; padding:12px 16px; border-radius:12px; cursor:pointer; font-weight:700; box-shadow:0 6px 14px rgba(37,99,235,.25); transition:.2s transform,.2s box-shadow,.2s opacity;}
-  .btn.secondary{background:#e2e8f0; color:#0f172a; box-shadow:none}
-  .btn.ghost{background:transparent; color:var(--brand); box-shadow:none}
-  .btn:disabled{opacity:.5; cursor:not-allowed}
-  .input{width:100%; padding:14px 16px; border-radius:12px; border:1px solid #e2e8f0; font-size:16px; outline:none}
-  .input:focus{box-shadow:var(--ring); border-color:var(--brand)}
-  .bank{display:flex; flex-wrap:wrap; gap:12px; padding:8px;}
-  .chip{user-select:none; background:var(--chip); color:var(--chip-ink); padding:10px 14px; border-radius:9999px; font-weight:700; cursor:pointer; position:relative; touch-action:none;}
-  .chip.dragging{position:fixed; pointer-events:none; z-index:60; box-shadow:0 10px 24px rgba(2,8,23,.20)}
-  .chip[data-placed="true"]{background:#cbd5e1}
-  .board{background:#eef2ff; border-radius:16px; padding:12px;}
-  .panel{background:#dbeafe; border-radius:16px; padding:12px; margin-top:10px;}
-  .panel h3{margin:6px 8px 10px; font-size:20px; display:flex; align-items:center; gap:8px; color:#1d4ed8}
-  .slots{display:grid; grid-template-columns:repeat(auto-fit, minmax(140px,1fr)); gap:12px;}
-  .slot{background:var(--slot); color:var(--slot-ink); border-radius:16px; padding:18px 10px; display:flex; align-items:center; justify-content:center; height:64px; position:relative; outline:2px solid transparent;}
-  .slot.empty{background:linear-gradient(135deg,#3b82f6,#2563eb); opacity:.85}
-  .slot.highlight{box-shadow:var(--ring)}
-  .slot .placeholder{opacity:.9; font-weight:700}
-  .slot .inside{position:absolute; inset:6px; display:flex; align-items:center; justify-content:center}
-  .slot .inside .chip{background:#fff; padding:10px 12px; border-radius:9999px; font-weight:800;}
-  .header{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;}
-  .score{font-weight:800}
-  .hidden{display:none !important}
-  .muted{color:var(--muted)}
-  .notice{background:#ecfeff; border:1px dashed #bae6fd; padding:10px 12px; border-radius:12px; color:#0369a1}
-  dialog{border:none; border-radius:16px; width:min(800px,96vw); padding:0}
-  .modal{padding:18px}
-  table{width:100%; border-collapse:collapse}
-  th,td{padding:10px; border-bottom:1px solid #e2e8f0; text-align:left}
-  th{font-size:14px; color:#334155}
-  .badge{background:#dcfce7; color:#166534; padding:2px 8px; border-radius:9999px; font-weight:800;}
-  .footer{display:flex; justify-content:flex-end; gap:8px; padding:14px}
-  /* mobile tweaks */
-  @media (max-width:540px){
-    .slots{grid-template-columns:repeat(2,1fr)}
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Actividad: Tipos de Comunicación</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Estilo para el elemento que se está arrastrando */
+        .dragging {
+            opacity: 0.5;
+            transform: scale(1.05);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        /* Estilo para resaltar las zonas de destino */
+        .drag-over {
+            background-color: #a7f3d0; /* Tailwind green-200 */
+            border-style: dashed;
+        }
+        /* Estilo para la palabra seleccionada en el modo click */
+        .selected {
+            outline: 2px solid #3b82f6; /* Tailwind blue-500 */
+            transform: scale(1.05);
+            background-color: #dbeafe; /* Tailwind blue-100 */
+        }
+        /* Transiciones suaves para una mejor experiencia de usuario */
+        .draggable-word, .drop-zone {
+            transition: all 0.2s ease-in-out;
+        }
+        .screen {
+            display: none;
+        }
+        .screen.active {
+            display: block;
+        }
+    </style>
 </head>
-<body>
-  <main class="container">
-    <!-- Pantalla 1: registro -->
-    <section id="screen-intro" class="card" aria-labelledby="intro-title">
-      <div class="title" id="intro-title">Actividad: Comunicación Profesor – Estudiante</div>
-      <p class="subtitle">Arrastra o pulsa para colocar cada palabra en la categoría correcta.</p>
-      <div class="row" style="margin-top:16px">
-        <div style="flex:1 1 260px">
-          <label for="nick" class="muted" style="font-weight:700">Nickname numérico (obligatorio)</label>
-          <input id="nick" class="input" inputmode="numeric" pattern="^\\d+$" placeholder="Ej.: 1024" autocomplete="off"/>
-          <p id="nickHelp" class="muted" style="margin:6px 2px 0">Sólo dígitos 0-9. Se mostrará junto a tu puntaje.</p>
-        </div>
-        <div class="row" style="flex:0 0 auto">
-          <button id="btnStart" class="btn" disabled>Comenzar</button>
-          <button id="btnScoresIntro" class="btn secondary">Ver puntajes</button>
-        </div>
-      </div>
-      <div class="notice" style="margin-top:14px">
-        <strong>Consejo:</strong> funciona en móviles y Safari. Puedes arrastrar con el dedo (Pointer Events) o pulsar una palabra y luego un espacio vacío para colocarla.
-      </div>
-    </section>
+<body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen p-4">
 
-    <!-- Pantalla 2: juego -->
-    <section id="screen-game" class="card hidden" aria-live="polite">
-      <div class="header">
-        <div class="row">
-          <div class="title" style="margin:0; font-size:22px">Comunicación Profesor – Estudiante</div>
-        </div>
-        <div class="row">
-          <span id="hudNick" class="badge">Nick: –</span>
-          <span id="hudScore" class="badge">Puntaje: 0/6</span>
-          <button id="btnScoresGame" class="btn secondary">Ver puntajes</button>
-          <button id="btnReset" class="btn ghost">Reiniciar</button>
-        </div>
-      </div>
+    <div class="w-full max-w-4xl mx-auto">
 
-      <h4 class="muted" style="margin:12px 2px 8px">Arrastra o pulsa para colocar:</h4>
-      <div id="bank" class="bank" aria-label="Banco de palabras">
-        <!-- chips inserted by JS -->
-      </div>
-
-      <div class="board" role="region" aria-label="Tablero">
-        <div class="panel">
-          <h3>Comunicación Unidireccional <span aria-hidden>➡️</span></h3>
-          <div class="slots" id="slots-uni" data-group="uni"></div>
+        <!-- Pantalla de Bienvenida -->
+        <div id="welcome-screen" class="screen active bg-white p-8 rounded-xl shadow-lg text-center">
+            <h1 class="text-3xl font-bold mb-4 text-gray-700">Actividad Interactiva</h1>
+            <p class="text-gray-600 mb-6">Ingresa un nickname numérico para comenzar.</p>
+            <input type="text" id="nickname-input" inputmode="numeric" pattern="[0-9]*" class="w-full max-w-xs mx-auto px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ej: 12345">
+            <p id="error-message" class="text-red-500 mt-2 h-6"></p>
+            <div class="mt-4 flex flex-col sm:flex-row gap-4 justify-center">
+                <button id="start-btn" class="bg-blue-500 text-white font-bold py-2 px-6 rounded-lg shadow hover:bg-blue-600 transition-transform transform hover:scale-105">
+                    Iniciar Actividad
+                </button>
+                <button id="scores-btn" class="bg-gray-200 text-gray-700 font-bold py-2 px-6 rounded-lg shadow hover:bg-gray-300 transition-transform transform hover:scale-105">
+                    Ver Puntajes
+                </button>
+            </div>
         </div>
-        <div class="panel">
-          <h3>Comunicación Multidireccional <span aria-hidden>↔️</span></h3>
-          <div class="slots" id="slots-multi" data-group="multi"></div>
-        </div>
-      </div>
-    </section>
-  </main>
 
-  <!-- Modal puntajes -->
-  <dialog id="scoresModal">
-    <div class="modal">
-      <div class="title" style="font-size:22px; margin-bottom:6px">Tabla de puntajes</div>
-      <p class="muted">Se almacenan en tu navegador (localStorage) bajo esta computadora/navegador.</p>
-      <div class="row" style="justify-content:flex-end; margin:8px 0">
-        <button id="btnDownload" class="btn secondary">Descargar JSON</button>
-      </div>
-      <div class="card" style="padding:0">
-        <table id="scoresTable" aria-label="Puntajes almacenados">
-          <thead><tr><th>Fecha</th><th>Nick</th><th>Puntaje</th><th>Total</th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </div>
+        <!-- Pantalla de Actividad -->
+        <div id="activity-screen" class="screen">
+             <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Nickname: <span id="nickname-display" class="text-blue-600"></span></h2>
+                <div class="text-xl font-bold bg-white px-4 py-2 rounded-lg shadow-md">Puntaje: <span id="score-display" class="text-green-600">0</span></div>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-lg">
+                <p class="text-center text-gray-600 mb-6">Arrastre o seleccione las palabras para llenar los espacios vacíos correspondientes a cada tipo de comunicación.</p>
+                
+                <!-- Contenedor de palabras para arrastrar -->
+                <div id="words-container" class="flex flex-wrap items-center justify-center gap-3 p-4 mb-8 bg-gray-100 rounded-lg min-h-[60px]">
+                    <!-- Las palabras se generarán aquí con JavaScript -->
+                </div>
+
+                <!-- Zonas para soltar -->
+                <div class="space-y-8">
+                    <!-- Categoría 1 -->
+                    <div class="p-4 bg-blue-100 rounded-lg shadow-inner">
+                        <h3 class="text-lg font-bold text-center text-blue-800 mb-4 p-3 bg-blue-200 rounded-md">Comunicación Unidireccional ➡</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4" data-category="unidireccional">
+                            <div class="drop-zone min-h-[50px] bg-white border-2 border-gray-300 rounded-lg flex items-center justify-center p-2"></div>
+                            <div class="drop-zone min-h-[50px] bg-white border-2 border-gray-300 rounded-lg flex items-center justify-center p-2"></div>
+                             <div class="drop-zone min-h-[50px] bg-white border-2 border-gray-300 rounded-lg flex items-center justify-center p-2 empty-placeholder"></div>
+                             <div class="drop-zone min-h-[50px] bg-white border-2 border-gray-300 rounded-lg flex items-center justify-center p-2 empty-placeholder"></div>
+                        </div>
+                    </div>
+                    <!-- Categoría 2 -->
+                    <div class="p-4 bg-blue-100 rounded-lg shadow-inner">
+                        <h3 class="text-lg font-bold text-center text-blue-800 mb-4 p-3 bg-blue-200 rounded-md">⬅ Comunicación Multidireccional</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4" data-category="multidireccional">
+                            <div class="drop-zone min-h-[50px] bg-white border-2 border-gray-300 rounded-lg flex items-center justify-center p-2"></div>
+                            <div class="drop-zone min-h-[50px] bg-white border-2 border-gray-300 rounded-lg flex items-center justify-center p-2"></div>
+                            <div class="drop-zone min-h-[50px] bg-white border-2 border-gray-300 rounded-lg flex items-center justify-center p-2"></div>
+                            <div class="drop-zone min-h-[50px] bg-white border-2 border-gray-300 rounded-lg flex items-center justify-center p-2"></div>
+                        </div>
+                    </div>
+                </div>
+                 <p id="result-message" class="text-center font-bold mt-6 h-6"></p>
+                <div class="mt-6 flex flex-col sm:flex-row gap-4 justify-center">
+                    <button id="check-btn" class="bg-green-500 text-white font-bold py-2 px-6 rounded-lg shadow hover:bg-green-600 transition-transform transform hover:scale-105">
+                        Calificar
+                    </button>
+                    <button id="restart-btn" class="bg-yellow-500 text-white font-bold py-2 px-6 rounded-lg shadow hover:bg-yellow-600 transition-transform transform hover:scale-105">
+                        Reiniciar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pantalla de Puntajes -->
+        <div id="scores-screen" class="screen bg-white p-8 rounded-xl shadow-lg text-center">
+            <h1 class="text-3xl font-bold mb-6 text-gray-700">Tabla de Puntajes</h1>
+            <div id="scores-table" class="space-y-2 max-h-80 overflow-y-auto">
+                <!-- Los puntajes se cargarán aquí -->
+            </div>
+             <button id="back-btn" class="mt-6 bg-gray-200 text-gray-700 font-bold py-2 px-6 rounded-lg shadow hover:bg-gray-300 transition-transform transform hover:scale-105">
+                Volver al Inicio
+            </button>
+        </div>
+
     </div>
-    <div class="footer"><button id="btnCloseModal" class="btn">Cerrar</button></div>
-  </dialog>
 
-<script>
-(() => {
-  // ---------------------- Datos base ----------------------
-  const WORDS = [
-    {text:"Foros", group:"multi"},
-    {text:"Blog", group:"uni"},
-    {text:"Wikis", group:"multi"},
-    {text:"Mailing", group:"uni"},
-    {text:"Redes Sociales", group:"multi"},
-    {text:"Video Conferencia", group:"multi"}
-  ];
-  const TARGETS = { uni:2, multi:4 }; // 2 arriba, 4 abajo (según imagen)
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- ELEMENTOS DEL DOM ---
+            const screens = {
+                welcome: document.getElementById('welcome-screen'),
+                activity: document.getElementById('activity-screen'),
+                scores: document.getElementById('scores-screen')
+            };
+            const nicknameInput = document.getElementById('nickname-input');
+            const errorMessage = document.getElementById('error-message');
+            const startBtn = document.getElementById('start-btn');
+            const scoresBtn = document.getElementById('scores-btn');
+            const backBtn = document.getElementById('back-btn');
+            const nicknameDisplay = document.getElementById('nickname-display');
+            const scoreDisplay = document.getElementById('score-display');
+            const wordsContainer = document.getElementById('words-container');
+            const dropZones = document.querySelectorAll('.drop-zone');
+            const checkBtn = document.getElementById('check-btn');
+            const restartBtn = document.getElementById('restart-btn');
+            const resultMessage = document.getElementById('result-message');
+            const scoresTable = document.getElementById('scores-table');
 
-  const q = sel => document.querySelector(sel);
-  const ce = (tag, props={}) => Object.assign(document.createElement(tag), props);
+            // --- DATOS DE LA ACTIVIDAD ---
+            const activityData = {
+                unidireccional: ['Blog', 'Mailing'],
+                multidireccional: ['Foros', 'Wikis', 'Redes Sociales', 'Video Conferencia']
+            };
 
-  const els = {
-    screenIntro: q('#screen-intro'),
-    screenGame: q('#screen-game'),
-    nick: q('#nick'),
-    btnStart: q('#btnStart'),
-    btnScoresIntro: q('#btnScoresIntro'),
-    btnScoresGame: q('#btnScoresGame'),
-    btnReset: q('#btnReset'),
-    bank: q('#bank'),
-    slotsUni: q('#slots-uni'),
-    slotsMulti: q('#slots-multi'),
-    hudNick: q('#hudNick'),
-    hudScore: q('#hudScore'),
-    // modal
-    modal: q('#scoresModal'),
-    tblBody: q('#scoresTable tbody'),
-    btnCloseModal: q('#btnCloseModal'),
-    btnDownload: q('#btnDownload')
-  };
+            const allWords = [...activityData.unidireccional, ...activityData.multidireccional];
+            
+            // --- ESTADO DE LA APLICACIÓN ---
+            let currentNickname = '';
+            let currentScore = 0;
+            let selectedWord = null; // Para el fallback de click
 
-  // ---------------------- Estado ----------------------
-  let state = {$1_savedOnce: false, lastXY: {x:0, y:0}
-  };
+            // --- FUNCIONES DE NAVEGACIÓN ---
+            function showScreen(screenId) {
+                Object.values(screens).forEach(screen => screen.classList.remove('active'));
+                screens[screenId].classList.add('active');
+            }
 
-  // ---------------------- Utilidades ----------------------
-  const storageKey = 'comms-scores-v1';
-  const readScores = () => JSON.parse(localStorage.getItem(storageKey) || '[]');
-  const writeScores = (rows) => localStorage.setItem(storageKey, JSON.stringify(rows));
-  const saveAttempt = (score) => {
-    const rows = readScores();
-    rows.unshift({ ts: new Date().toISOString(), nick: state.nick || '–', score, total: WORDS.length });
-    writeScores(rows.slice(0,200));
-  };
+            // --- LÓGICA DE LA PANTALLA DE BIENVENIDA ---
+            startBtn.addEventListener('click', () => {
+                const nickname = nicknameInput.value.trim();
+                if (nickname && !isNaN(nickname)) {
+                    currentNickname = nickname;
+                    nicknameDisplay.textContent = currentNickname;
+                    nicknameInput.value = '';
+                    errorMessage.textContent = '';
+                    showScreen('activity');
+                    initActivity();
+                } else {
+                    errorMessage.textContent = 'Por favor, ingresa un nickname numérico válido.';
+                }
+            });
 
-  function shuffle(arr){
-    for(let i=arr.length-1;i>0;i--){
-      const j = Math.floor(Math.random()*(i+1));
-      [arr[i],arr[j]]=[arr[j],arr[i]];
-    }
-    return arr;
-  }
+            scoresBtn.addEventListener('click', () => {
+                loadScores();
+                showScreen('scores');
+            });
+            
+            backBtn.addEventListener('click', () => showScreen('welcome'));
 
-  function computeScore(){
-    let ok=0;
-    for(const [slotId, word] of Object.entries(state.placements)){
-      const slot = document.getElementById(slotId);
-      const group = slot.dataset.group;
-      const correct = WORDS.find(w=>w.text===word)?.group;
-      if(correct===group) ok++;
-    }
-    els.hudScore.textContent = `Puntaje: ${ok}/${WORDS.length}`;
-    return ok;
-  }
+            // --- LÓGICA DE LA PANTALLA DE ACTIVIDAD ---
+            function initActivity() {
+                // Limpiar estado previo
+                wordsContainer.innerHTML = '';
+                dropZones.forEach(zone => {
+                    if (!zone.classList.contains('empty-placeholder')) {
+                        zone.innerHTML = '';
+                    }
+                });
+                scoreDisplay.textContent = '0';
+                currentScore = 0;
+                resultMessage.textContent = '';
+                checkBtn.disabled = false;
+                
+                // Barajar y crear palabras
+                shuffleArray(allWords).forEach(wordText => {
+                    const wordDiv = document.createElement('div');
+                    wordDiv.textContent = wordText;
+                    wordDiv.id = `word-${wordText.replace(/\s+/g, '')}`;
+                    wordDiv.draggable = true;
+                    wordDiv.className = 'draggable-word bg-blue-500 text-white py-2 px-4 rounded-lg cursor-pointer shadow-md';
+                    wordDiv.dataset.word = wordText;
+                    
+                    const category = Object.keys(activityData).find(key => activityData[key].includes(wordText));
+                    wordDiv.dataset.category = category;
+                    
+                    wordsContainer.appendChild(wordDiv);
+                });
+                
+                addEventListeners();
+            }
 
-  function updateHudNick(){
-    els.hudNick.textContent = `Nick: ${state.nick}`;
-  }
+            function addEventListeners() {
+                const draggables = document.querySelectorAll('.draggable-word');
+                
+                draggables.forEach(draggable => {
+                    // Eventos de arrastre
+                    draggable.addEventListener('dragstart', dragStart);
+                    draggable.addEventListener('dragend', dragEnd);
+                    
+                    // Eventos de puntero para compatibilidad móvil
+                    draggable.addEventListener('pointerdown', handlePointerDown);
 
-  // ---------------------- Construcción UI ----------------------
-  function buildBoard(){
-    // make slots
-    els.slotsUni.innerHTML=''; els.slotsMulti.innerHTML='';
-    let slotCount = 0;
-    const mkSlot = (group) => {
-      const id = `slot-${group}-${++slotCount}`;
-      const slot = ce('div', {className:'slot empty', id});
-      slot.dataset.group = group;
-      slot.innerHTML = `<span class="placeholder">Colocar aquí</span>`;
-      addSlotInteractions(slot);
-      return slot;
-    };
-    for(let i=0;i<TARGETS.uni;i++) els.slotsUni.appendChild(mkSlot('uni'));
-    for(let i=0;i<TARGETS.multi;i++) els.slotsMulti.appendChild(mkSlot('multi'));
+                    // Evento para el fallback de click
+                    draggable.addEventListener('click', handleWordClick);
+                });
 
-    // word bank
-    els.bank.innerHTML='';
-    for(const w of shuffle([...WORDS])){
-      const chip = ce('div', {className:'chip', textContent:w.text});
-      chip.dataset.word = w.text;
-      chip.setAttribute('role','button');
-      chip.setAttribute('aria-label',`Palabra ${w.text}`);
-      addChipInteractions(chip);
-      els.bank.appendChild(chip);
-    }
-  }
+                dropZones.forEach(zone => {
+                     if (zone.classList.contains('empty-placeholder')) return;
+                    zone.addEventListener('dragover', dragOver);
+                    zone.addEventListener('dragleave', dragLeave);
+                    zone.addEventListener('drop', drop);
 
-  // ---------------------- Interacciones de Slots ----------------------
-  function addSlotInteractions(slot){
-    // click-to-place fallback
-    slot.addEventListener('click', (e)=>{
-      if(!slot.querySelector('.inside') && state.dragging==null && _selectedWord){
-        placeWordInSlot(_selectedWord, slot);
-        _selectedWord.classList.remove('selected');
-        _selectedWord=null;
-      }
-    });
-    slot.addEventListener('pointerenter', ()=> slot.classList.add('highlight'));
-    slot.addEventListener('pointerleave', ()=> slot.classList.remove('highlight'));
-  }
+                    // Evento para el fallback de click
+                    zone.addEventListener('click', handleDropZoneClick);
+                });
+            }
 
-  // Hit testing robusto: busca el primer .slot vacío bajo el punto
-  function getDropSlotAt(x, y){
-    const stack = (document.elementsFromPoint && document.elementsFromPoint(x, y)) || [];
-    for(const el of stack){
-      if(el.classList && el.classList.contains('slot') && !el.querySelector('.inside')) return el;
-    }
-    // Fallback por bounding-box (para navegadores con issues de hit-test)
-    const candidates = Array.from(document.querySelectorAll('.slot')).filter(s=>!s.querySelector('.inside'));
-    for(const s of candidates){
-      const r = s.getBoundingClientRect();
-      if(x>=r.left && x<=r.right && y>=r.top && y<=r.bottom) return s;
-    }
-    return null;
-  }
+            // --- LÓGICA DE DRAG & DROP ---
+            function dragStart(e) {
+                e.target.classList.add('dragging');
+                e.dataTransfer.setData('text/plain', e.target.id);
+            }
 
-  // ---------------------- Interacciones de Palabras ----------------------
-  let _selectedWord = null; // para click-to-place
+            function dragEnd(e) {
+                e.target.classList.remove('dragging');
+            }
 
-  function addChipInteractions(chip){
-    chip.addEventListener('click', (e)=>{
-      // toggle selección para click-to-place
-      if(state.dragging) return;
-      if(_selectedWord && _selectedWord!==chip) _selectedWord.classList.remove('selected');
-      chip.classList.toggle('selected');
-      _selectedWord = chip.classList.contains('selected') ? chip : null;
-    });
+            function dragOver(e) {
+                e.preventDefault();
+                if(e.target.classList.contains('drop-zone') && e.target.childElementCount === 0) {
+                   e.target.classList.add('drag-over');
+                }
+            }
 
-    chip.addEventListener('pointerdown', (ev)=>{
-      if(ev.button!==0) return;
-      chip.setPointerCapture(ev.pointerId);
-      state.pointerId = ev.pointerId;
-      state.dragging = chip;
-      chip.classList.add('dragging');
-      const rect = chip.getBoundingClientRect();
-      const dx = ev.clientX - rect.left, dy = ev.clientY - rect.top;
-      const move = (e)=>{
-        if(state.pointerId!==e.pointerId) return;
-        state.lastXY = {x:e.clientX, y:e.clientY};
-        chip.style.left = (e.clientX - dx) + 'px';
-        chip.style.top  = (e.clientY - dy) + 'px';
-      };
-      const up = (e)=>{
-        if(state.pointerId!==e.pointerId) return;
-        chip.removeEventListener('pointermove', move);
-        chip.removeEventListener('pointerup', up);
-        try{ chip.releasePointerCapture(e.pointerId); }catch{}
-        chip.classList.remove('dragging');
-        const prevPE = chip.style.pointerEvents; const prevVis = chip.style.visibility;
-        chip.style.pointerEvents='none'; chip.style.visibility='hidden';
-        const cx = e.clientX || state.lastXY.x; const cy = e.clientY || state.lastXY.y;
-        let slot = getDropSlotAt(cx, cy);
-        chip.style.pointerEvents=prevPE || ''; chip.style.visibility=prevVis || '';
-        chip.style.left=''; chip.style.top='';
-        state.dragging=null; state.pointerId=null;
-        if(slot){ placeWordInSlot(chip, slot); }
-      };
-      chip.addEventListener('pointermove', move);
-      chip.addEventListener('pointerup', up);
-      chip.addEventListener('pointercancel', up, {once:true});
-    });
-  }
+            function dragLeave(e) {
+                 e.target.classList.remove('drag-over');
+            }
 
-  // ---------------------- Colocar / quitar ----------------------
-  function placeWordInSlot(chip, slot){
-    const word = chip.dataset.word;
-    const shell = ce('div', {className:'inside'});
-    const inner = ce('div', {className:'chip', textContent:word});
-    inner.style.cursor='pointer';
-    inner.title='Tocar para devolver al banco';
-    inner.addEventListener('click', ()=> removeFromSlot(slot, word));
-    shell.appendChild(inner);
-    slot.innerHTML='';
-    slot.classList.remove('empty');
-    slot.appendChild(shell);
-    slot.setAttribute('aria-label',`Slot con ${word}`);
-    state.placements[slot.id] = word;
-    chip.remove(); // sacar del banco
-    computeScore();
-    if(Object.keys(state.placements).length===WORDS.length){
-      const score = computeScore();
-      if(!state._savedOnce){
-        saveAttempt(score);
-        state._savedOnce = true;
-      }
-    }
-  }
+            function drop(e) {
+                e.preventDefault();
+                e.target.classList.remove('drag-over');
+                const id = e.dataTransfer.getData('text/plain');
+                const draggable = document.getElementById(id);
+                if (e.target.classList.contains('drop-zone') && e.target.childElementCount === 0) {
+                    e.target.appendChild(draggable);
+                }
+            }
+            
+            // --- LÓGICA DE COMPATIBILIDAD (POINTER & CLICK) ---
+            function handlePointerDown(e) {
+                // Previene conflictos con el click-to-place en dispositivos táctiles
+                e.preventDefault(); 
+                // Selecciona para el click-to-place si no se está arrastrando
+                handleWordClick(e);
+            }
 
-  function removeFromSlot(slot, word){
-    delete state.placements[slot.id];
-    slot.innerHTML='<span class="placeholder">Colocar aquí</span>';
-    slot.classList.add('empty');
-    // regresar al banco
-    const chip = ce('div', {className:'chip', textContent:word});
-    chip.dataset.word = word;
-    addChipInteractions(chip);
-    els.bank.appendChild(chip);
-    computeScore();
-  }
+            function handleWordClick(e) {
+                const clickedWord = e.target;
+                if (selectedWord === clickedWord) {
+                    // Deseleccionar
+                    selectedWord.classList.remove('selected');
+                    selectedWord = null;
+                } else {
+                    // Quitar selección anterior
+                    if (selectedWord) {
+                        selectedWord.classList.remove('selected');
+                    }
+                    // Seleccionar nueva palabra
+                    selectedWord = clickedWord;
+                    selectedWord.classList.add('selected');
+                }
+            }
+            
+            function handleDropZoneClick(e) {
+                const dropZone = e.currentTarget; // Usar currentTarget para asegurar que es el div.drop-zone
+                 if (dropZone.classList.contains('empty-placeholder')) return;
+                
+                if (selectedWord && dropZone.childElementCount === 0) {
+                    dropZone.appendChild(selectedWord);
+                    selectedWord.classList.remove('selected');
+                    selectedWord = null;
+                }
+            }
 
-  // ---------------------- Modal puntajes ----------------------
-  function openScores(){
-    // Guardar si está completo y aún no se registró (cubre el caso del último drop)
-    if(Object.keys(state.placements).length===WORDS.length && !state._savedOnce){
-      const scoreNow = computeScore();
-      saveAttempt(scoreNow);
-      state._savedOnce = true;
-    }
-    const rows = readScores();
-    els.tblBody.innerHTML='';
-    for(const r of rows){
-      const tr = ce('tr');
-      const d = new Date(r.ts);
-      tr.innerHTML = `<td>${d.toLocaleString()}</td><td>${r.nick}</td><td>${r.score}</td><td>${r.total}</td>`;
-      els.tblBody.appendChild(tr);
-    }
-    els.modal.showModal();
-  }
 
-  els.btnCloseModal.addEventListener('click', ()=> els.modal.close());
-  els.btnDownload.addEventListener('click', ()=>{
-    const blob = new Blob([JSON.stringify(readScores(), null, 2)], {type:'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = ce('a', {href:url, download:'puntajes_comunicacion.json'});
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(()=>URL.revokeObjectURL(url), 4000);
-  });
+            // --- LÓGICA DE CALIFICACIÓN Y REINICIO ---
+            checkBtn.addEventListener('click', () => {
+                let score = 0;
+                let answeredCount = 0;
 
-  // ---------------------- Inicio / Validación ----------------------
-  function validateNick(){
-    const ok = /^\d+$/.test(els.nick.value.trim());
-    els.btnStart.disabled = !ok;
-    return ok;
-  }
-  els.nick.addEventListener('input', validateNick);
+                dropZones.forEach(zone => {
+                    if (zone.childElementCount > 0) {
+                        answeredCount++;
+                        const wordElement = zone.children[0];
+                        const wordCategory = wordElement.dataset.category;
+                        const zoneCategory = zone.parentElement.dataset.category;
 
-  els.btnStart.addEventListener('click', ()=>{
-    if(!validateNick()) return;
-    state.nick = els.nick.value.trim();
-    updateHudNick();
-    buildBoard();
-    els.screenIntro.classList.add('hidden');
-    els.screenGame.classList.remove('hidden');
-  });
+                        if (wordCategory === zoneCategory) {
+                            score++;
+                            wordElement.classList.remove('bg-blue-500');
+                            wordElement.classList.add('bg-green-500');
+                        } else {
+                            wordElement.classList.remove('bg-blue-500');
+                            wordElement.classList.add('bg-red-500');
+                        }
+                    }
+                });
+                
+                currentScore = score;
+                scoreDisplay.textContent = currentScore;
+                resultMessage.textContent = `¡Calificación completa! Tu puntaje es ${currentScore}.`;
+                resultMessage.classList.add(currentScore > (allWords.length / 2) ? 'text-green-600' : 'text-red-600');
+                
+                saveScore(currentNickname, currentScore);
 
-  els.btnReset.addEventListener('click', ()=>{
-    state.placements = {}; state._savedOnce = false; buildBoard(); computeScore();
-  });
+                // Deshabilitar más interacciones
+                checkBtn.disabled = true;
+                document.querySelectorAll('.draggable-word').forEach(w => w.draggable = false);
+            });
 
-  els.btnScoresIntro.addEventListener('click', openScores);
-  els.btnScoresGame .addEventListener('click', openScores);
+            restartBtn.addEventListener('click', initActivity);
 
-  // ---------------------- Funciones de prueba (consola) ----------------------
-  window.test = {
-    countDropzones(){ return document.querySelectorAll('.slot').length; },
-    countWords(){ return WORDS.length; },
-    state(){ return JSON.parse(JSON.stringify(state)); }
-  };
+            // --- LÓGICA DE PUNTUACIONES (localStorage) ---
+            function getScores() {
+                return JSON.parse(localStorage.getItem('activityScores')) || [];
+            }
+            
+            function saveScore(nickname, score) {
+                const scores = getScores();
+                scores.push({ nickname, score });
+                localStorage.setItem('activityScores', JSON.stringify(scores));
+            }
 
-})();
-</script>
+            function loadScores() {
+                scoresTable.innerHTML = '';
+                const scores = getScores();
+                
+                if (scores.length === 0) {
+                    scoresTable.innerHTML = '<p class="text-gray-500">Aún no hay puntajes registrados.</p>';
+                    return;
+                }
+
+                scores
+                    .sort((a, b) => b.score - a.score) // Ordenar de mayor a menor
+                    .forEach(({ nickname, score }) => {
+                        const scoreEntry = document.createElement('div');
+                        scoreEntry.className = 'flex justify-between items-center p-3 bg-gray-100 rounded-lg';
+                        scoreEntry.innerHTML = `
+                            <span class="font-medium text-gray-700">Nickname: ${nickname}</span>
+                            <span class="font-bold text-blue-600">Puntaje: ${score}</span>
+                        `;
+                        scoresTable.appendChild(scoreEntry);
+                    });
+            }
+
+            // --- UTILIDADES ---
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            }
+
+            // --- PRUEBAS BÁSICAS EN CONSOLA ---
+            function runTests() {
+                console.log("--- Iniciando Pruebas Básicas ---");
+                const availableWords = allWords.length;
+                const availableDropZones = document.querySelectorAll('.drop-zone:not(.empty-placeholder)').length;
+
+                console.log(`Número de palabras disponibles: ${availableWords}`);
+                console.log(`Número de zonas de destino: ${availableDropZones}`);
+
+                if (availableWords <= availableDropZones) {
+                    console.log("Prueba superada: Hay suficientes o más zonas de destino que palabras.");
+                } else {
+                    console.error("Prueba fallida: No hay suficientes zonas de destino para todas las palabras.");
+                }
+                console.log("--- Pruebas Finalizadas ---");
+            }
+            
+            runTests();
+        });
+    </script>
 </body>
 </html>
