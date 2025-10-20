@@ -99,6 +99,9 @@
       .layout{grid-template-columns:1fr}
       .row{grid-template-columns:1fr;gap:10px}
     }
+      /* Pointer-based drag (fallback for iOS / GH Pages) */
+    .chip{touch-action:none}
+    .chip.dragging{position:fixed;left:0;top:0;transform:translate(var(--dx,0px), var(--dy,0px));z-index:9999;opacity:.95;pointer-events:none}
   </style>
 </head>
 <body>
@@ -301,9 +304,15 @@
         chip.tabIndex = 0;
         chip.addEventListener('dragstart', onDragStart);
         chip.addEventListener('dblclick', ()=> bank.appendChild(chip));
-        // Fallback: selection for click-to-place (helps on iOS/Android & some GH Pages iframes)
         chip.addEventListener('click', () => {
           if(selectedChip && selectedChip !== chip){ selectedChip.classList.remove('selected'); }
+          selectedChip = (selectedChip === chip) ? null : chip;
+          chip.classList.toggle('selected');
+        });
+        enablePointerDrag(chip); // pointer events fallback
+        bank.appendChild(chip);
+      });
+    }
           selectedChip = (selectedChip === chip) ? null : chip;
           chip.classList.toggle('selected');
         });
@@ -315,16 +324,16 @@
       drops().forEach(d => { d.classList.remove('filled'); d.textContent = 'Suelta aquí'; });
     }
 
-    // --------- Drag & Drop ---------
+    // --------- Drag & Drop (HTML5) ---------
     let dragIdCounter = 0;
     let selectedChip = null; // Fallback: click-to-place
 
     function onDragStart(ev){
       const id = `drag-${dragIdCounter++}`;
       ev.target.id = id;
-      // Improve cross-browser compatibility
       ev.dataTransfer.effectAllowed = 'move';
-      ev.dataTransfer.setData('text/plain', id);
+      // Some browsers (older Safari) only accept 'text'
+      try{ ev.dataTransfer.setData('text/plain', id); }catch{}
       try{ ev.dataTransfer.setData('text', id); }catch{}
     }
     function onDragOver(ev){ ev.preventDefault(); ev.dataTransfer.dropEffect = 'move'; ev.currentTarget.classList.add('hover'); }
@@ -334,6 +343,9 @@
       const existing = dropEl.querySelector('.chip');
       if(existing) bank.appendChild(existing);
       dropEl.innerHTML='';
+      chip.classList.remove('dragging');
+      chip.style.removeProperty('--dx');
+      chip.style.removeProperty('--dy');
       dropEl.appendChild(chip);
       dropEl.classList.add('filled');
     }
@@ -351,13 +363,67 @@
         d.addEventListener('dragover', onDragOver);
         d.addEventListener('dragleave', onDragLeave);
         d.addEventListener('drop', onDrop);
-        // Fallback: click-to-place
+        // click-to-place fallback
         d.addEventListener('click', () => {
           if(selectedChip){
             placeChipInDrop(selectedChip, d);
             selectedChip.classList.remove('selected');
             selectedChip = null;
           }
+        });
+      });
+      bank.addEventListener('dragover', (e)=>{ e.preventDefault(); e.dataTransfer.dropEffect='move'; });
+      bank.addEventListener('drop', (e)=>{
+        e.preventDefault();
+        const id = e.dataTransfer.getData('text/plain') || e.dataTransfer.getData('text');
+        const chip = document.getElementById(id);
+        if(!chip) return;
+        chip.classList.remove('dragging');
+        bank.appendChild(chip);
+        chip.classList.remove('selected');
+      });
+    }
+
+    // --------- Pointer Events drag (works on iOS/Android & GH Pages) ---------
+    let peActive = false;
+    function enablePointerDrag(chip){
+      let startX=0, startY=0;
+      function onPointerDown(e){
+        // if HTML5 dragstart fires, prefer that
+        if (e.button !== undefined && e.button !== 0) return; // left click / touch only
+        peActive = true;
+        startX = e.clientX; startY = e.clientY;
+        chip.classList.add('dragging');
+        chip.setPointerCapture(e.pointerId);
+        e.preventDefault();
+      }
+      function onPointerMove(e){
+        if(!peActive || !chip.classList.contains('dragging')) return;
+        const dx = e.clientX - startX; const dy = e.clientY - startY;
+        chip.style.setProperty('--dx', dx + 'px');
+        chip.style.setProperty('--dy', dy + 'px');
+      }
+      function onPointerUp(e){
+        if(!peActive) return;
+        peActive = false;
+        chip.releasePointerCapture(e.pointerId);
+        // Find drop under pointer
+        const els = document.elementsFromPoint(e.clientX, e.clientY);
+        const targetDrop = els.find(el => el.classList && el.classList.contains('drop'));
+        if(targetDrop){
+          placeChipInDrop(chip, targetDrop);
+        } else {
+          chip.classList.remove('dragging');
+          chip.style.removeProperty('--dx');
+          chip.style.removeProperty('--dy');
+          bank.appendChild(chip);
+        }
+      }
+      chip.addEventListener('pointerdown', onPointerDown);
+      chip.addEventListener('pointermove', onPointerMove);
+      chip.addEventListener('pointerup', onPointerUp);
+      chip.addEventListener('pointercancel', onPointerUp);
+    }
         });
       });
       // allow dropping back to bank
