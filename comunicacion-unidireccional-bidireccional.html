@@ -256,29 +256,39 @@
 
             function dragOver(e) {
                 e.preventDefault();
-                if(e.target.classList.contains('drop-zone') && e.target.childElementCount === 0) {
-                   e.target.classList.add('drag-over');
+                const dropZone = e.currentTarget;
+                if (dropZone.childElementCount === 0) {
+                   dropZone.classList.add('drag-over');
                 }
             }
 
             function dragLeave(e) {
-                 e.target.classList.remove('drag-over');
+                 e.currentTarget.classList.remove('drag-over');
             }
 
             function drop(e) {
                 e.preventDefault();
-                e.target.classList.remove('drag-over');
-                const id = e.dataTransfer.getData('text/plain');
-                const draggable = document.getElementById(id);
-                if (e.target.classList.contains('drop-zone') && e.target.childElementCount === 0) {
-                    e.target.appendChild(draggable);
+                const dropZone = e.currentTarget;
+                dropZone.classList.remove('drag-over');
+                
+                if (dropZone.childElementCount > 0) {
+                    return;
+                }
+
+                try {
+                    const id = e.dataTransfer.getData('text/plain');
+                    const draggable = document.getElementById(id);
+                    if (draggable) {
+                        dropZone.appendChild(draggable);
+                    }
+                } catch (error) {
+                    console.error("Fallo al soltar:", error);
                 }
             }
             
             // --- LÓGICA DE COMPATIBILIDAD (POINTER & CLICK) ---
             function handlePointerDown(e) {
                 // Se llama a handleWordClick para gestionar la selección de palabras para el modo "click-to-place".
-                // Se ha eliminado e.preventDefault() que impedía el inicio del arrastre en escritorio.
                 handleWordClick(e);
             }
 
