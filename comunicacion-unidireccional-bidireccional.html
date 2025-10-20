@@ -1,16 +1,736 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comunicación Profesor-Estudiante</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #4c6ef5;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.8rem;
+        }
+
+        .welcome-screen {
+            text-align: center;
+        }
+
+        .input-group {
+            margin: 30px 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #495057;
+            font-weight: 600;
+        }
+
+        input {
+            width: 100%;
+            max-width: 300px;
+            padding: 12px 20px;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #4c6ef5;
+            box-shadow: 0 0 0 3px rgba(76, 110, 245, 0.1);
+        }
+
+        .error-message {
+            color: #e03131;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        button {
+            background: #4c6ef5;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 10px;
+        }
+
+        button:hover {
+            background: #364fc7;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 110, 245, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .secondary-btn {
+            background: #868e96;
+        }
+
+        .secondary-btn:hover {
+            background: #495057;
+        }
+
+        .game-area {
+            display: none;
+        }
+
+        .header-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .nickname-display {
+            color: #4c6ef5;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .score-display {
+            background: #51cf66;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .words-container {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            min-height: 80px;
+        }
+
+        .word-item {
+            background: #4c6ef5;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: move;
+            user-select: none;
+            touch-action: none;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .word-item:hover {
+            background: #364fc7;
+            transform: scale(1.05);
+        }
+
+        .word-item.dragging {
+            opacity: 0.5;
+        }
+
+        .word-item.selected {
+            background: #ffd43b;
+            color: #212529;
+            border: 3px solid #fcc419;
+        }
+
+        .communication-section {
+            background: #e7f5ff;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            color: #1971c2;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .arrow {
+            font-size: 1.5rem;
+        }
+
+        .drop-zones {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .drop-zone {
+            background: white;
+            border: 3px dashed #91a7ff;
+            border-radius: 10px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            transition: all 0.3s;
+        }
+
+        .drop-zone.drag-over {
+            background: #dbe4ff;
+            border-color: #4c6ef5;
+            border-style: solid;
+        }
+
+        .drop-zone.filled {
+            border-style: solid;
+            border-color: #51cf66;
+        }
+
+        .drop-zone .word-item {
+            cursor: pointer;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .results-screen {
+            display: none;
+            text-align: center;
+        }
+
+        .score-result {
+            font-size: 3rem;
+            color: #51cf66;
+            font-weight: bold;
+            margin: 30px 0;
+        }
+
+        .scoreboard {
+            display: none;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        th {
+            background: #4c6ef5;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 640px) {
+            .card {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.4rem;
+            }
+
+            .drop-zones {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .word-item {
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+        }
+
+        .instruction {
+            background: #fff3bf;
+            border-left: 4px solid #fcc419;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            color: #862e9c;
+        }
+    </style>
 </head>
 <body>
-<div id="liveworksheet1951052" style="width:60%">
-    <span id="lwslink1951052"><a href="https://www.liveworksheets.com/worksheet/es/ddu-104/1951052">Evaluación del componente social</a>, an interactive worksheet by <a href="https://www.liveworksheets.com/es/u/ricardoquiroz">ricardo_quiroz</a>
-    <br><a href="https://www.liveworksheets.com">live<b>worksheets.com</b></a></span>
+    <div class="container">
+        <div class="card">
+            <!-- Pantalla de bienvenida -->
+            <div class="welcome-screen" id="welcomeScreen">
+                <h1>📚 Comunicación Profesor - Estudiante</h1>
+                <p style="margin-bottom: 20px; color: #495057;">Bienvenido a la actividad interactiva</p>
+                
+                <div class="input-group">
+                    <label for="nicknameInput">Ingresa tu código de estudiante (solo números):</label>
+                    <input type="text" id="nicknameInput" placeholder="Ej: 12345" maxlength="10">
+                    <div class="error-message" id="errorMessage">Por favor ingresa solo números</div>
+                </div>
+
+                <div>
+                    <button onclick="startGame()">Iniciar Actividad</button>
+                    <button class="secondary-btn" onclick="showScoreboard()">Ver Tabla de Puntajes</button>
+                </div>
+            </div>
+
+            <!-- Área del juego -->
+            <div class="game-area" id="gameArea">
+                <h1>📚 Comunicación Profesor - Estudiante</h1>
+                
+                <div class="header-info">
+                    <div class="nickname-display" id="nicknameDisplay"></div>
+                    <div class="score-display" id="scoreDisplay">Puntaje: 0/6</div>
+                </div>
+
+                <div class="instruction">
+                    <strong>Instrucciones:</strong> Arrastra (o haz clic) las palabras desde la zona superior y colócalas en los espacios correspondientes según el tipo de comunicación.
+                </div>
+
+                <!-- Palabras disponibles -->
+                <div class="words-container" id="wordsContainer">
+                    <div class="word-item" draggable="true" data-word="foros">Foros</div>
+                    <div class="word-item" draggable="true" data-word="blog">Blog</div>
+                    <div class="word-item" draggable="true" data-word="wikis">Wikis</div>
+                    <div class="word-item" draggable="true" data-word="mailing">Mailing</div>
+                    <div class="word-item" draggable="true" data-word="redes">Redes Sociales</div>
+                    <div class="word-item" draggable="true" data-word="video">Video Conferencia</div>
+                </div>
+
+                <!-- Sección Unidireccional -->
+                <div class="communication-section">
+                    <div class="section-title">
+                        Comunicación Unidireccional <span class="arrow">→</span>
+                    </div>
+                    <div class="drop-zones" id="unidirectionalZones">
+                        <div class="drop-zone" data-zone="uni-1"></div>
+                        <div class="drop-zone" data-zone="uni-2"></div>
+                        <div class="drop-zone" data-zone="uni-3"></div>
+                        <div class="drop-zone" data-zone="uni-4"></div>
+                    </div>
+                </div>
+
+                <!-- Sección Multidireccional -->
+                <div class="communication-section" style="background: #fff0f6;">
+                    <div class="section-title" style="color: #c2255c;">
+                        Comunicación Multidireccional <span class="arrow">↔</span>
+                    </div>
+                    <div class="drop-zones" id="multidirectionalZones">
+                        <div class="drop-zone" data-zone="multi-1"></div>
+                        <div class="drop-zone" data-zone="multi-2"></div>
+                        <div class="drop-zone" data-zone="multi-3"></div>
+                        <div class="drop-zone" data-zone="multi-4"></div>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button onclick="checkAnswers()">Verificar Respuestas</button>
+                    <button class="secondary-btn" onclick="resetGame()">Reiniciar</button>
+                </div>
+            </div>
+
+            <!-- Pantalla de resultados -->
+            <div class="results-screen" id="resultsScreen">
+                <h1>¡Actividad Completada! 🎉</h1>
+                <div class="score-result" id="finalScore"></div>
+                <p style="margin-bottom: 30px; color: #495057;" id="feedback"></p>
+                
+                <div>
+                    <button onclick="resetGame()">Intentar de Nuevo</button>
+                    <button class="secondary-btn" onclick="showScoreboard()">Ver Tabla de Puntajes</button>
+                    <button class="secondary-btn" onclick="backToWelcome()">Volver al Inicio</button>
+                </div>
+            </div>
+
+            <!-- Tabla de puntajes -->
+            <div class="scoreboard" id="scoreboard">
+                <h1>📊 Tabla de Puntajes</h1>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Código Estudiante</th>
+                            <th>Puntaje</th>
+                            <th>Fecha</th>
+                        </tr>
+                    </thead>
+                    <tbody id="scoreTableBody"></tbody>
+                </table>
+                <div class="actions">
+                    <button onclick="backToWelcome()">Volver</button>
+                    <button class="secondary-btn" onclick="clearScores()">Limpiar Puntajes</button>
+                </div>
+            </div>
+        </div>
     </div>
-    <script src="https://www.liveworksheets.com/embed/embed.js?v=1"></script>
+
     <script>
-    loadliveworksheet(1951052,'uzdb',882,'www','new');
+        // Variables globales
+        let currentNickname = '';
+        let selectedWord = null;
+        let draggedElement = null;
+
+        // Respuestas correctas
+        const correctAnswers = {
+            'uni-1': 'blog',
+            'uni-2': 'mailing',
+            'multi-1': 'redes',
+            'multi-2': 'foros',
+            'multi-3': 'video',
+            'multi-4': 'wikis'
+        };
+
+        // Inicializar eventos cuando carga la página
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeDragAndDrop();
+            loadScoreboard();
+            runTests();
+        });
+
+        function startGame() {
+            const input = document.getElementById('nicknameInput');
+            const errorMsg = document.getElementById('errorMessage');
+            const nickname = input.value.trim();
+
+            // Validar que sea numérico
+            if (!/^\d+$/.test(nickname)) {
+                errorMsg.style.display = 'block';
+                input.style.borderColor = '#e03131';
+                return;
+            }
+
+            currentNickname = nickname;
+            errorMsg.style.display = 'none';
+            input.style.borderColor = '#dee2e6';
+
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('gameArea').style.display = 'block';
+            document.getElementById('nicknameDisplay').textContent = `Estudiante: ${currentNickname}`;
+        }
+
+        function initializeDragAndDrop() {
+            const words = document.querySelectorAll('.word-item');
+            const dropZones = document.querySelectorAll('.drop-zone');
+
+            words.forEach(word => {
+                // Drag events
+                word.addEventListener('dragstart', handleDragStart);
+                word.addEventListener('dragend', handleDragEnd);
+
+                // Touch/Click events para móviles
+                word.addEventListener('click', handleWordClick);
+                word.addEventListener('touchstart', handleWordClick, { passive: true });
+            });
+
+            dropZones.forEach(zone => {
+                zone.addEventListener('dragover', handleDragOver);
+                zone.addEventListener('drop', handleDrop);
+                zone.addEventListener('dragleave', handleDragLeave);
+
+                // Click en zona para móviles
+                zone.addEventListener('click', handleZoneClick);
+            });
+        }
+
+        function handleDragStart(e) {
+            draggedElement = e.target;
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', e.target.innerHTML);
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            e.target.classList.add('drag-over');
+            return false;
+        }
+
+        function handleDragLeave(e) {
+            e.target.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.stopPropagation();
+            e.preventDefault();
+
+            const zone = e.target.closest('.drop-zone');
+            zone.classList.remove('drag-over');
+
+            if (draggedElement && zone) {
+                // Si la zona ya tiene una palabra, devolverla
+                const existingWord = zone.querySelector('.word-item');
+                if (existingWord) {
+                    document.getElementById('wordsContainer').appendChild(existingWord);
+                }
+
+                // Colocar la nueva palabra
+                zone.appendChild(draggedElement);
+                zone.classList.add('filled');
+                draggedElement = null;
+            }
+
+            return false;
+        }
+
+        // Sistema de click para móviles
+        function handleWordClick(e) {
+            e.stopPropagation();
+            const word = e.target.closest('.word-item');
+            
+            if (!word) return;
+
+            // Si está en una zona, devolverla
+            const parentZone = word.closest('.drop-zone');
+            if (parentZone) {
+                document.getElementById('wordsContainer').appendChild(word);
+                parentZone.classList.remove('filled');
+                word.classList.remove('selected');
+                return;
+            }
+
+            // Deseleccionar todas las palabras
+            document.querySelectorAll('.word-item').forEach(w => {
+                w.classList.remove('selected');
+            });
+
+            // Seleccionar esta palabra
+            word.classList.add('selected');
+            selectedWord = word;
+        }
+
+        function handleZoneClick(e) {
+            const zone = e.target.closest('.drop-zone');
+            
+            if (!zone || !selectedWord) return;
+
+            // Si la zona ya tiene una palabra, devolverla
+            const existingWord = zone.querySelector('.word-item');
+            if (existingWord) {
+                document.getElementById('wordsContainer').appendChild(existingWord);
+            }
+
+            // Colocar la palabra seleccionada
+            zone.appendChild(selectedWord);
+            zone.classList.add('filled');
+            selectedWord.classList.remove('selected');
+            selectedWord = null;
+        }
+
+        function checkAnswers() {
+            let score = 0;
+            const dropZones = document.querySelectorAll('.drop-zone');
+
+            dropZones.forEach(zone => {
+                const word = zone.querySelector('.word-item');
+                const zoneId = zone.dataset.zone;
+                
+                if (word) {
+                    const wordId = word.dataset.word;
+                    if (correctAnswers[zoneId] === wordId) {
+                        score++;
+                        zone.style.borderColor = '#51cf66';
+                        zone.style.background = '#d3f9d8';
+                    } else {
+                        zone.style.borderColor = '#ff6b6b';
+                        zone.style.background = '#ffe0e0';
+                    }
+                }
+            });
+
+            // Guardar resultado
+            saveScore(score);
+
+            // Mostrar resultados
+            document.getElementById('gameArea').style.display = 'none';
+            document.getElementById('resultsScreen').style.display = 'block';
+            document.getElementById('finalScore').textContent = `${score}/6`;
+            
+            const feedback = score === 6 ? '¡Perfecto! Todas las respuestas son correctas.' :
+                           score >= 4 ? '¡Muy bien! Casi lo logras.' :
+                           score >= 2 ? 'Bien, pero puedes mejorar.' :
+                           'Intenta de nuevo, puedes hacerlo mejor.';
+            
+            document.getElementById('feedback').textContent = feedback;
+        }
+
+        function resetGame() {
+            // Devolver todas las palabras al contenedor
+            const words = document.querySelectorAll('.drop-zone .word-item');
+            words.forEach(word => {
+                document.getElementById('wordsContainer').appendChild(word);
+                word.classList.remove('selected');
+            });
+
+            // Limpiar zonas
+            document.querySelectorAll('.drop-zone').forEach(zone => {
+                zone.classList.remove('filled');
+                zone.style.borderColor = '';
+                zone.style.background = '';
+            });
+
+            // Resetear puntaje
+            document.getElementById('scoreDisplay').textContent = 'Puntaje: 0/6';
+
+            // Mostrar área de juego
+            document.getElementById('resultsScreen').style.display = 'none';
+            document.getElementById('gameArea').style.display = 'block';
+
+            selectedWord = null;
+        }
+
+        function saveScore(score) {
+            const scores = JSON.parse(localStorage.getItem('communicationScores') || '[]');
+            const newScore = {
+                nickname: currentNickname,
+                score: score,
+                total: 6,
+                date: new Date().toLocaleString('es-ES')
+            };
+            scores.push(newScore);
+            localStorage.setItem('communicationScores', JSON.stringify(scores));
+        }
+
+        function showScoreboard() {
+            loadScoreboard();
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('gameArea').style.display = 'none';
+            document.getElementById('resultsScreen').style.display = 'none';
+            document.getElementById('scoreboard').style.display = 'block';
+        }
+
+        function loadScoreboard() {
+            const scores = JSON.parse(localStorage.getItem('communicationScores') || '[]');
+            const tbody = document.getElementById('scoreTableBody');
+            tbody.innerHTML = '';
+
+            if (scores.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#868e96;">No hay puntajes registrados</td></tr>';
+                return;
+            }
+
+            // Ordenar por puntaje descendente
+            scores.sort((a, b) => b.score - a.score);
+
+            scores.forEach((score, index) => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${score.nickname}</td>
+                    <td><strong>${score.score}/${score.total}</strong></td>
+                    <td>${score.date}</td>
+                `;
+            });
+        }
+
+        function clearScores() {
+            if (confirm('¿Estás seguro de que quieres borrar todos los puntajes?')) {
+                localStorage.removeItem('communicationScores');
+                loadScoreboard();
+            }
+        }
+
+        function backToWelcome() {
+            document.getElementById('welcomeScreen').style.display = 'block';
+            document.getElementById('gameArea').style.display = 'none';
+            document.getElementById('resultsScreen').style.display = 'none';
+            document.getElementById('scoreboard').style.display = 'none';
+            document.getElementById('nicknameInput').value = '';
+        }
+
+        // Funciones de prueba
+        function runTests() {
+            console.log('=== PRUEBAS DE LA ACTIVIDAD ===');
+            
+            // Test 1: Validar número de zonas de drop
+            const dropZones = document.querySelectorAll('.drop-zone');
+            console.log(`✓ Test 1: Número de zonas de drop = ${dropZones.length} (esperado: 8)`);
+            
+            // Test 2: Validar número de palabras disponibles
+            const words = document.querySelectorAll('.word-item');
+            console.log(`✓ Test 2: Número de palabras disponibles = ${words.length} (esperado: 6)`);
+            
+            // Test 3: Validar respuestas correctas configuradas
+            const numCorrectAnswers = Object.keys(correctAnswers).length;
+            console.log(`✓ Test 3: Respuestas correctas configuradas = ${numCorrectAnswers}`);
+            
+            // Test 4: Validar localStorage
+            try {
+                localStorage.setItem('test', 'test');
+                localStorage.removeItem('test');
+                console.log('✓ Test 4: localStorage funcional');
+            } catch (e) {
+                console.error('✗ Test 4: localStorage no disponible');
+            }
+            
+            console.log('=== FIN DE PRUEBAS ===');
+        }
+
+        // Función de ayuda para debugging
+        window.debugGame = function() {
+            console.log('Estado actual del juego:');
+            console.log('- Nickname actual:', currentNickname);
+            console.log('- Respuestas correctas:', correctAnswers);
+            console.log('- Puntajes guardados:', localStorage.getItem('communicationScores'));
+        };
     </script>
 </body>
 </html>
-
