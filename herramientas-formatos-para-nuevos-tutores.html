@@ -1,160 +1,152 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Actividad Drag & Drop</title>
-<style>
-  :root{
-    --bg:#f3f4f6; --card:#fff; --muted:#6b7280; --text:#111827;
-    --primary:#3b82f6; --primary-700:#2563eb;
-    --ok:#16a34a; --bad:#dc2626; --ring:#c7d2fe;
-    --chip-bg:#e0f2fe; --chip-bd:#7dd3fc;
-    --drop-bg:#eef2ff; --drop-bd:#a5b4fc;
-  }
-  *{box-sizing:border-box}
-  body{margin:0; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Inter, Roboto, "Helvetica Neue", Arial; background:var(--bg); color:var(--text); display:flex; min-height:100vh; align-items:center; justify-content:center}
-  .wrap{width:min(960px,92vw)}
-  .card{background:var(--card); border-radius:1.25rem; padding:1.5rem; box-shadow:0 10px 25px rgba(0,0,0,.08)}
-  h1,h2{margin:.25rem 0 1rem; text-align:center}
-  h1{font-size:1.6rem}
-  .row{margin:.75rem 0}
-  input[type="number"]{width:100%; border:1px solid #d1d5db; border-radius:.75rem; padding:.8rem 1rem; font-size:1rem}
-  .btn{width:100%; border:0; border-radius:.9rem; padding:.85rem 1rem; background:var(--primary); color:#fff; font-weight:600; cursor:pointer}
-  .btn:hover{background:var(--primary-700)}
-  .muted{color:var(--muted)}
-  .hidden{display:none}
-
-  /* Frases */
-  .sentence{line-height:2.2; font-size:1.05rem}
-  .dropzone{
-    display:inline-flex; align-items:center; justify-content:center;
-    min-width:110px; min-height:40px; padding:.25rem .6rem; margin:0 .15rem .35rem;
-    border:2px dashed var(--drop-bd); background:var(--drop-bg);
-    color:var(--muted); border-radius:999px; vertical-align:middle;
-    transition:box-shadow .15s, transform .05s;
-    user-select:none;
-  }
-  .dropzone.filled{border-style:solid; color:var(--text); background:#fff}
-  .dropzone.active{box-shadow:0 0 0 4px var(--ring)}
-  .dropzone.correct{border-color:var(--ok)}
-  .dropzone.incorrect{border-color:var(--bad)}
-
-  /* Banco de palabras */
-  #bank{display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.75rem}
-  .chip{
-    display:inline-flex; align-items:center; justify-content:center;
-    padding:.45rem .8rem; border-radius:.8rem; border:1px solid var(--chip-bd);
-    background:var(--chip-bg); cursor:grab; user-select:none;
-    touch-action:none; /* importante para pointer events */
-  }
-  .chip.dragging{opacity:.8; transform:scale(1.03)}
-  .chip.selected{outline:3px solid var(--ring)}
-  .actions{display:grid; gap:1rem; margin-top:1rem}
-  .center{display:flex; justify-content:center}
-
-  /* “fantasma” para drag por pointer events */
-  .ghost{position:fixed; pointer-events:none; transform:translate(-50%, -50%); z-index:9999}
-
-  table{width:100%; border-collapse:collapse; margin-top:.75rem}
-  th,td{border:1px solid #e5e7eb; padding:.55rem .6rem; text-align:center}
-  th{background:#f8fafc}
-  .score{font-weight:700; text-align:center; margin-top:.75rem}
-</style>
-</head>
-<body>
-<div class="wrap">
-
-  <!-- LOGIN -->
-  <section id="login" class="card">
-    <h1>Ingresa tu nickname numérico</h1>
-    <p class="muted center">Debe ser solo números (ej. 10234)</p>
-    <div class="row"><input id="nick" type="number" inputmode="numeric" placeholder="Ej: 12345"/></div>
-    <div class="row"><button class="btn" id="go">Comenzar</button></div>
-  </section>
-
-  <!-- JUEGO -->
-  <section id="game" class="card hidden" aria-live="polite">
-    <h1>Completa las frases</h1>
-
-    <p class="sentence">
-      Es labor del profesor conseguir que el aprendizaje sea más
-      <span class="dropzone" data-answer="personal" data-placeholder="suelta aquí">suelta aquí</span>
-      y se adapte al
-      <span class="dropzone" data-answer="ritmo" data-placeholder="suelta aquí">suelta aquí</span>
-      y al
-      <span class="dropzone" data-answer="estilo" data-placeholder="suelta aquí">suelta aquí</span>
-      de cada alumno.
-    </p>
-
-    <p class="sentence">
-      Una parte del contenido disponible en internet está además publicado con licencias
-      <span class="dropzone" data-answer="abiertas" data-placeholder="suelta aquí">suelta aquí</span>,
-      tales como Creative Commons o similar, por lo que es posible, no sólo
-      <span class="dropzone" data-answer="acceder" data-placeholder="suelta aquí">suelta aquí</span>
-      a los contenidos, sino también
-      <span class="dropzone" data-answer="reutilizarlos" data-placeholder="suelta aquí">suelta aquí</span>
-      y
-      <span class="dropzone" data-answer="adaptarlos" data-placeholder="suelta aquí">suelta aquí</span>
-      dentro del contexto de un curso.
-    </p>
-
-    <div id="bank" aria-label="Banco de palabras">
-      <!-- Se rellena desde JS -->
-    </div>
-
-    <div class="actions">
-      <button id="check" class="btn">Revisar</button>
-      <div id="result" class="score"></div>
-      <button id="tableBtn" class="btn" style="background:#1f2937">Ver tabla de puntajes</button>
-    </div>
-  </section>
-
-  <!-- TABLA -->
-  <section id="scores" class="card hidden">
-    <h1>Tabla de puntajes</h1>
-    <table>
-      <thead><tr><th>Nickname</th><th>Puntaje</th><th>Fecha</th></tr></thead>
-      <tbody id="tbody"></tbody>
-    </table>
-    <div class="actions">
-      <button id="dl" class="btn">Descargar JSON</button>
-      <button id="back" class="btn" style="background:#1f2937">Volver</button>
-    </div>
-  </section>
-
-</div>
-
 <script>
-/* ========= Datos ========= */
-const WORDS = ["abiertas","adaptarlos","personal","acceder","ritmo","reutilizarlos","estilo"];
+document.addEventListener('DOMContentLoaded', () => {
+  /* ========= Datos ========= */
+  const WORDS = ["abiertas","adaptarlos","personal","acceder","ritmo","reutilizarlos","estilo"];
+  let currentUser = null;
+  const qs = s => document.querySelector(s);
+  const qsa = s => [...document.querySelectorAll(s)];
 
-/* ========= Estado ========= */
-let currentUser = null;
-const qs = s => document.querySelector(s);
-const qsa = s => [...document.querySelectorAll(s)];
+  /* ========= Login ========= */
+  const goBtn = qs('#go');
+  const nickInput = qs('#nick');
 
-/* ========= Login ========= */
-qs('#go').addEventListener('click', () => {
-  const v = qs('#nick').value.trim();
-  if (!/^\d+$/.test(v)) { alert('Ingresa sólo números.'); return; }
-  currentUser = v;
-  qs('#login').classList.add('hidden');
-  qs('#game').classList.remove('hidden');
+  function startGame() {
+    const v = nickInput.value.trim();
+    if (!/^\d+$/.test(v)) {
+      alert('Ingresa sólo números.');
+      return;
+    }
+    currentUser = v;
+    qs('#login').classList.add('hidden');
+    qs('#game').classList.remove('hidden');
+  }
+
+  goBtn.addEventListener('click', startGame);
+  nickInput.addEventListener('keyup', e => { if (e.key === 'Enter') startGame(); });
+
+  /* ========= Render banco ========= */
+  const bank = qs('#bank');
+  WORDS.forEach(w => bank.appendChild(makeChip(w)));
+
+  function makeChip(text){
+    const el = document.createElement('button');
+    el.type = 'button';
+    el.className = 'chip';
+    el.textContent = text;
+    el.dataset.word = text;
+    el.addEventListener('click', () => {
+      const prev = qs('.chip.selected');
+      if (prev && prev !== el) prev.classList.remove('selected');
+      el.classList.toggle('selected');
+    });
+    enablePointerDrag(el);
+    return el;
+  }
+
+  /* ========= Dropzones ========= */
+  qsa('.dropzone').forEach(z => {
+    z.addEventListener('click', () => {
+      const sel = qs('.chip.selected');
+      if (sel) placeWord(z, sel.dataset.word);
+    });
+  });
+
+  function placeWord(zone, word){
+    zone.textContent = word;
+    zone.classList.add('filled');
+    zone.dataset.user = word;
+    const sel = qs('.chip.selected');
+    if (sel) sel.classList.remove('selected');
+  }
+
+  /* ========= Pointer drag ========= */
+  function enablePointerDrag(el){
+    let ghost=null;
+    el.addEventListener('pointerdown', (ev) => {
+      ev.preventDefault();
+      el.setPointerCapture(ev.pointerId);
+      el.classList.add('dragging');
+      ghost = el.cloneNode(true);
+      ghost.classList.add('ghost','chip');
+      ghost.style.left = ev.clientX + 'px';
+      ghost.style.top  = ev.clientY + 'px';
+      document.body.appendChild(ghost);
+      const move = (e)=>{
+        ghost.style.left = e.clientX + 'px';
+        ghost.style.top  = e.clientY + 'px';
+        qsa('.dropzone').forEach(d => d.classList.remove('active'));
+        const under = document.elementFromPoint(e.clientX, e.clientY);
+        const dz = under && (under.closest && under.closest('.dropzone'));
+        if (dz) dz.classList.add('active');
+      };
+      const up = (e)=>{
+        el.releasePointerCapture(ev.pointerId);
+        el.classList.remove('dragging');
+        ghost?.remove(); ghost=null;
+        qsa('.dropzone').forEach(d => d.classList.remove('active'));
+        const under = document.elementFromPoint(e.clientX, e.clientY);
+        const dz = under && (under.closest && under.closest('.dropzone'));
+        if (dz) placeWord(dz, el.dataset.word);
+        document.removeEventListener('pointermove', move);
+        document.removeEventListener('pointerup', up);
+        document.removeEventListener('pointercancel', up);
+      };
+      document.addEventListener('pointermove', move);
+      document.addEventListener('pointerup', up);
+      document.addEventListener('pointercancel', up);
+    });
+  }
+
+  /* ========= Calificación ========= */
+  qs('#check').addEventListener('click', () => {
+    const zones = qsa('.dropzone');
+    let score = 0;
+    zones.forEach(z => {
+      z.classList.remove('correct','incorrect');
+      const ok = (z.dataset.user || '').trim().toLowerCase() === z.dataset.answer;
+      if (ok){ z.classList.add('correct'); score++; }
+      else { z.classList.add('incorrect'); }
+    });
+    const msg = `Tu puntaje: ${score} / ${zones.length}`;
+    qs('#result').textContent = msg;
+    storeScore(currentUser, score);
+  });
+
+  /* ========= Guardado & tabla ========= */
+  function storeScore(nick, score){
+    const data = JSON.parse(localStorage.getItem('scores') || '[]');
+    data.push({nickname:nick, score, at:new Date().toISOString()});
+    localStorage.setItem('scores', JSON.stringify(data));
+  }
+
+  qs('#tableBtn').addEventListener('click', () => {
+    qs('#game').classList.add('hidden');
+    qs('#scores').classList.remove('hidden');
+    const tbody = qs('#tbody'); tbody.innerHTML = '';
+    const data = JSON.parse(localStorage.getItem('scores') || '[]');
+    data.forEach(r=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${r.nickname}</td><td>${r.score}</td><td>${new Date(r.at).toLocaleString()}</td>`;
+      tbody.appendChild(tr);
+    });
+  });
+
+  qs('#back').addEventListener('click', ()=>{
+    qs('#scores').classList.add('hidden');
+    qs('#game').classList.remove('hidden');
+  });
+
+  qs('#dl').addEventListener('click', ()=>{
+    const blob = new Blob([localStorage.getItem('scores') || '[]'], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'puntajes.json'; a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  /* ========= Pruebas ========= */
+  window.testDropzones = () => qsa('.dropzone').length;
+  window.testWords = () => qsa('#bank .chip').length;
+  console.log('%cOK: listeners cargados y botón Comenzar operativo', 'color:green');
 });
-
-/* ========= Render banco ========= */
-const bank = qs('#bank');
-WORDS.forEach(w => bank.appendChild(makeChip(w)));
-
-function makeChip(text){
-  const el = document.createElement('button');
-  el.type = 'button';
-  el.className = 'chip';
-  el.textContent = text;
-  el.dataset.word = text;
-
-  // Fallback por click: seleccionar y luego tocar dropzone
-  el.addEventListener('click', () => {
-    const prev = qs('.chip.selected');
-    if (prev && prev !== el) prev.classL
+</script>
