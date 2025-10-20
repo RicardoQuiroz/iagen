@@ -1,239 +1,160 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Actividad Drag & Drop</title>
 <style>
-  body {
-    font-family: 'Inter', sans-serif;
-    background-color: #f3f4f6;
-    margin: 0; padding: 0;
-    display: flex; justify-content: center; align-items: center;
-    min-height: 100vh;
+  :root{
+    --bg:#f3f4f6; --card:#fff; --muted:#6b7280; --text:#111827;
+    --primary:#3b82f6; --primary-700:#2563eb;
+    --ok:#16a34a; --bad:#dc2626; --ring:#c7d2fe;
+    --chip-bg:#e0f2fe; --chip-bd:#7dd3fc;
+    --drop-bg:#eef2ff; --drop-bd:#a5b4fc;
   }
-  .card {
-    background: white;
-    border-radius: 1rem;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    padding: 2rem;
-    max-width: 600px;
-    width: 90%;
+  *{box-sizing:border-box}
+  body{margin:0; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Inter, Roboto, "Helvetica Neue", Arial; background:var(--bg); color:var(--text); display:flex; min-height:100vh; align-items:center; justify-content:center}
+  .wrap{width:min(960px,92vw)}
+  .card{background:var(--card); border-radius:1.25rem; padding:1.5rem; box-shadow:0 10px 25px rgba(0,0,0,.08)}
+  h1,h2{margin:.25rem 0 1rem; text-align:center}
+  h1{font-size:1.6rem}
+  .row{margin:.75rem 0}
+  input[type="number"]{width:100%; border:1px solid #d1d5db; border-radius:.75rem; padding:.8rem 1rem; font-size:1rem}
+  .btn{width:100%; border:0; border-radius:.9rem; padding:.85rem 1rem; background:var(--primary); color:#fff; font-weight:600; cursor:pointer}
+  .btn:hover{background:var(--primary-700)}
+  .muted{color:var(--muted)}
+  .hidden{display:none}
+
+  /* Frases */
+  .sentence{line-height:2.2; font-size:1.05rem}
+  .dropzone{
+    display:inline-flex; align-items:center; justify-content:center;
+    min-width:110px; min-height:40px; padding:.25rem .6rem; margin:0 .15rem .35rem;
+    border:2px dashed var(--drop-bd); background:var(--drop-bg);
+    color:var(--muted); border-radius:999px; vertical-align:middle;
+    transition:box-shadow .15s, transform .05s;
+    user-select:none;
   }
-  h2 { text-align: center; color: #374151; }
-  input, button {
-    width: 100%;
-    padding: 0.8rem;
-    margin-top: 1rem;
-    border-radius: 0.5rem;
-    border: 1px solid #d1d5db;
-    font-size: 1rem;
+  .dropzone.filled{border-style:solid; color:var(--text); background:#fff}
+  .dropzone.active{box-shadow:0 0 0 4px var(--ring)}
+  .dropzone.correct{border-color:var(--ok)}
+  .dropzone.incorrect{border-color:var(--bad)}
+
+  /* Banco de palabras */
+  #bank{display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.75rem}
+  .chip{
+    display:inline-flex; align-items:center; justify-content:center;
+    padding:.45rem .8rem; border-radius:.8rem; border:1px solid var(--chip-bd);
+    background:var(--chip-bg); cursor:grab; user-select:none;
+    touch-action:none; /* importante para pointer events */
   }
-  button {
-    background-color: #3b82f6;
-    color: white;
-    border: none;
-    cursor: pointer;
-  }
-  button:hover { background-color: #2563eb; }
-  .dropzone {
-    display: inline-block;
-    min-width: 80px;
-    padding: 0.2rem 0.5rem;
-    margin: 0 0.3rem;
-    border-bottom: 2px dashed #9ca3af;
-  }
-  .word {
-    background-color: #e0f2fe;
-    border: 1px solid #7dd3fc;
-    border-radius: 0.5rem;
-    padding: 0.4rem 0.8rem;
-    margin: 0.3rem;
-    display: inline-block;
-    cursor: grab;
-  }
-  .word.dragging { opacity: 0.5; }
-  .result {
-    margin-top: 1.5rem;
-    font-weight: bold;
-    text-align: center;
-  }
-  .hidden { display: none; }
-  #scoreboard { margin-top: 1.5rem; }
-  table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-  th, td { border: 1px solid #d1d5db; padding: 0.5rem; text-align: center; }
-  th { background-color: #f3f4f6; }
+  .chip.dragging{opacity:.8; transform:scale(1.03)}
+  .chip.selected{outline:3px solid var(--ring)}
+  .actions{display:grid; gap:1rem; margin-top:1rem}
+  .center{display:flex; justify-content:center}
+
+  /* “fantasma” para drag por pointer events */
+  .ghost{position:fixed; pointer-events:none; transform:translate(-50%, -50%); z-index:9999}
+
+  table{width:100%; border-collapse:collapse; margin-top:.75rem}
+  th,td{border:1px solid #e5e7eb; padding:.55rem .6rem; text-align:center}
+  th{background:#f8fafc}
+  .score{font-weight:700; text-align:center; margin-top:.75rem}
 </style>
 </head>
 <body>
+<div class="wrap">
 
-<div id="login" class="card">
-  <h2>Ingresa tu Nickname Numérico</h2>
-  <input type="number" id="nickname" placeholder="Ej: 12345" />
-  <button onclick="startGame()">Comenzar</button>
-</div>
+  <!-- LOGIN -->
+  <section id="login" class="card">
+    <h1>Ingresa tu nickname numérico</h1>
+    <p class="muted center">Debe ser solo números (ej. 10234)</p>
+    <div class="row"><input id="nick" type="number" inputmode="numeric" placeholder="Ej: 12345"/></div>
+    <div class="row"><button class="btn" id="go">Comenzar</button></div>
+  </section>
 
-<div id="game" class="card hidden">
-  <h2>Completa las frases</h2>
-  <p>Es labor del profesor conseguir que el aprendizaje sea más 
-    <span class="dropzone" data-answer="personal"></span> 
-    y se adapte al 
-    <span class="dropzone" data-answer="ritmo"></span> 
-    y al 
-    <span class="dropzone" data-answer="estilo"></span> 
-    de cada alumno.
-  </p>
-  <p>Una parte del contenido disponible en internet está además publicado con licencias 
-    <span class="dropzone" data-answer="abiertas"></span>, 
-    tales como Creative Commons o similar, por lo que es posible, no sólo 
-    <span class="dropzone" data-answer="acceder"></span> 
-    a los contenidos, sino también 
-    <span class="dropzone" data-answer="reutilizarlos"></span> 
-    y 
-    <span class="dropzone" data-answer="adaptarlos"></span> 
-    dentro del contexto de un curso.
-  </p>
+  <!-- JUEGO -->
+  <section id="game" class="card hidden" aria-live="polite">
+    <h1>Completa las frases</h1>
 
-  <div id="wordBank">
-    <div class="word" draggable="true" data-word="abiertas">abiertas</div>
-    <div class="word" draggable="true" data-word="adaptarlos">adaptarlos</div>
-    <div class="word" draggable="true" data-word="personal">personal</div>
-    <div class="word" draggable="true" data-word="acceder">acceder</div>
-    <div class="word" draggable="true" data-word="ritmo">ritmo</div>
-    <div class="word" draggable="true" data-word="reutilizarlos">reutilizarlos</div>
-    <div class="word" draggable="true" data-word="estilo">estilo</div>
-  </div>
+    <p class="sentence">
+      Es labor del profesor conseguir que el aprendizaje sea más
+      <span class="dropzone" data-answer="personal" data-placeholder="suelta aquí">suelta aquí</span>
+      y se adapte al
+      <span class="dropzone" data-answer="ritmo" data-placeholder="suelta aquí">suelta aquí</span>
+      y al
+      <span class="dropzone" data-answer="estilo" data-placeholder="suelta aquí">suelta aquí</span>
+      de cada alumno.
+    </p>
 
-  <button onclick="checkAnswers()">Revisar</button>
-  <div id="result" class="result"></div>
-  <button onclick="showScoreboard()">Ver tabla de puntajes</button>
-</div>
+    <p class="sentence">
+      Una parte del contenido disponible en internet está además publicado con licencias
+      <span class="dropzone" data-answer="abiertas" data-placeholder="suelta aquí">suelta aquí</span>,
+      tales como Creative Commons o similar, por lo que es posible, no sólo
+      <span class="dropzone" data-answer="acceder" data-placeholder="suelta aquí">suelta aquí</span>
+      a los contenidos, sino también
+      <span class="dropzone" data-answer="reutilizarlos" data-placeholder="suelta aquí">suelta aquí</span>
+      y
+      <span class="dropzone" data-answer="adaptarlos" data-placeholder="suelta aquí">suelta aquí</span>
+      dentro del contexto de un curso.
+    </p>
 
-<div id="scoreboard" class="card hidden">
-  <h2>Tabla de Puntajes</h2>
-  <table>
-    <thead><tr><th>Nickname</th><th>Puntaje</th></tr></thead>
-    <tbody id="scoreTable"></tbody>
-  </table>
-  <button onclick="downloadJSON()">Descargar JSON</button>
-  <button onclick="backToGame()">Volver</button>
+    <div id="bank" aria-label="Banco de palabras">
+      <!-- Se rellena desde JS -->
+    </div>
+
+    <div class="actions">
+      <button id="check" class="btn">Revisar</button>
+      <div id="result" class="score"></div>
+      <button id="tableBtn" class="btn" style="background:#1f2937">Ver tabla de puntajes</button>
+    </div>
+  </section>
+
+  <!-- TABLA -->
+  <section id="scores" class="card hidden">
+    <h1>Tabla de puntajes</h1>
+    <table>
+      <thead><tr><th>Nickname</th><th>Puntaje</th><th>Fecha</th></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="actions">
+      <button id="dl" class="btn">Descargar JSON</button>
+      <button id="back" class="btn" style="background:#1f2937">Volver</button>
+    </div>
+  </section>
+
 </div>
 
 <script>
+/* ========= Datos ========= */
+const WORDS = ["abiertas","adaptarlos","personal","acceder","ritmo","reutilizarlos","estilo"];
+
+/* ========= Estado ========= */
 let currentUser = null;
+const qs = s => document.querySelector(s);
+const qsa = s => [...document.querySelectorAll(s)];
 
-// --- Pantalla inicial ---
-function startGame() {
-  const nick = document.getElementById('nickname').value.trim();
-  if (!nick || isNaN(nick)) {
-    alert("Por favor ingresa un número válido.");
-    return;
-  }
-  currentUser = nick;
-  document.getElementById('login').classList.add('hidden');
-  document.getElementById('game').classList.remove('hidden');
-}
-
-// --- Drag & Drop y fallback click ---
-const words = document.querySelectorAll('.word');
-const dropzones = document.querySelectorAll('.dropzone');
-let selectedWord = null;
-
-words.forEach(word => {
-  word.addEventListener('dragstart', e => {
-    e.dataTransfer.setData('text', word.dataset.word);
-    word.classList.add('dragging');
-  });
-  word.addEventListener('dragend', () => word.classList.remove('dragging'));
-  word.addEventListener('click', () => {
-    if (selectedWord === word) {
-      selectedWord.classList.remove('selected');
-      selectedWord = null;
-    } else {
-      if (selectedWord) selectedWord.classList.remove('selected');
-      selectedWord = word;
-      selectedWord.classList.add('selected');
-    }
-  });
+/* ========= Login ========= */
+qs('#go').addEventListener('click', () => {
+  const v = qs('#nick').value.trim();
+  if (!/^\d+$/.test(v)) { alert('Ingresa sólo números.'); return; }
+  currentUser = v;
+  qs('#login').classList.add('hidden');
+  qs('#game').classList.remove('hidden');
 });
 
-dropzones.forEach(zone => {
-  zone.addEventListener('dragover', e => e.preventDefault());
-  zone.addEventListener('drop', e => {
-    e.preventDefault();
-    const dropped = e.dataTransfer.getData('text');
-    zone.textContent = dropped;
-    zone.dataset.user = dropped;
-  });
-  zone.addEventListener('click', () => {
-    if (selectedWord) {
-      zone.textContent = selectedWord.dataset.word;
-      zone.dataset.user = selectedWord.dataset.word;
-      selectedWord.classList.remove('selected');
-      selectedWord = null;
-    }
-  });
-});
+/* ========= Render banco ========= */
+const bank = qs('#bank');
+WORDS.forEach(w => bank.appendChild(makeChip(w)));
 
-// --- Calificación ---
-function checkAnswers() {
-  let score = 0;
-  dropzones.forEach(zone => {
-    if (zone.dataset.user === zone.dataset.answer) {
-      zone.style.borderBottom = "2px solid #16a34a";
-      score++;
-    } else {
-      zone.style.borderBottom = "2px solid #dc2626";
-    }
-  });
-  const result = `Tu puntaje: ${score} / ${dropzones.length}`;
-  document.getElementById('result').textContent = result;
-  saveScore(currentUser, score);
-}
+function makeChip(text){
+  const el = document.createElement('button');
+  el.type = 'button';
+  el.className = 'chip';
+  el.textContent = text;
+  el.dataset.word = text;
 
-// --- Guardar puntajes ---
-function saveScore(user, score) {
-  const data = JSON.parse(localStorage.getItem('scores') || '[]');
-  data.push({ nickname: user, score });
-  localStorage.setItem('scores', JSON.stringify(data));
-}
-
-// --- Ver tabla de puntajes ---
-function showScoreboard() {
-  document.getElementById('game').classList.add('hidden');
-  document.getElementById('scoreboard').classList.remove('hidden');
-  const tbody = document.getElementById('scoreTable');
-  tbody.innerHTML = '';
-  const data = JSON.parse(localStorage.getItem('scores') || '[]');
-  data.forEach(row => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${row.nickname}</td><td>${row.score}</td>`;
-    tbody.appendChild(tr);
-  });
-}
-
-// --- Descargar JSON ---
-function downloadJSON() {
-  const data = localStorage.getItem('scores');
-  const blob = new Blob([data], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'puntajes.json';
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function backToGame() {
-  document.getElementById('scoreboard').classList.add('hidden');
-  document.getElementById('game').classList.remove('hidden');
-}
-
-// --- Funciones de prueba en consola ---
-window.testGame = () => {
-  console.log("Número de zonas de drop:", document.querySelectorAll('.dropzone').length);
-  console.log("Número de palabras disponibles:", document.querySelectorAll('.word').length);
-};
-</script>
-</body>
-</html>
+  // Fallback por click: seleccionar y luego tocar dropzone
+  el.addEventListener('click', () => {
+    const prev = qs('.chip.selected');
+    if (prev && prev !== el) prev.classL
