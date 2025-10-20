@@ -165,11 +165,7 @@
   };
 
   // ---------------------- Estado ----------------------
-  let state = {
-    nick: null,
-    placements: {}, // slotId -> word
-    dragging: null,
-    pointerId: null
+  let state = {$1_savedOnce: false, lastXY: {x:0, y:0}
   };
 
   // ---------------------- Utilidades ----------------------
@@ -178,7 +174,7 @@
   const writeScores = (rows) => localStorage.setItem(storageKey, JSON.stringify(rows));
   const saveAttempt = (score) => {
     const rows = readScores();
-    rows.unshift({ ts: new Date().toISOString(), nick: state.nick, score, total: WORDS.length });
+    rows.unshift({ ts: new Date().toISOString(), nick: state.nick || '–', score, total: WORDS.length });
     writeScores(rows.slice(0,200));
   };
 
@@ -248,6 +244,21 @@
     slot.addEventListener('pointerleave', ()=> slot.classList.remove('highlight'));
   }
 
+  // Hit testing robusto: busca el primer .slot vacío bajo el punto
+  function getDropSlotAt(x, y){
+    const stack = (document.elementsFromPoint && document.elementsFromPoint(x, y)) || [];
+    for(const el of stack){
+      if(el.classList && el.classList.contains('slot') && !el.querySelector('.inside')) return el;
+    }
+    // Fallback por bounding-box (para navegadores con issues de hit-test)
+    const candidates = Array.from(document.querySelectorAll('.slot')).filter(s=>!s.querySelector('.inside'));
+    for(const s of candidates){
+      const r = s.getBoundingClientRect();
+      if(x>=r.left && x<=r.right && y>=r.top && y<=r.bottom) return s;
+    }
+    return null;
+  }
+
   // ---------------------- Interacciones de Palabras ----------------------
   let _selectedWord = null; // para click-to-place
 
@@ -270,6 +281,7 @@
       const dx = ev.clientX - rect.left, dy = ev.clientY - rect.top;
       const move = (e)=>{
         if(state.pointerId!==e.pointerId) return;
+        state.lastXY = {x:e.clientX, y:e.clientY};
         chip.style.left = (e.clientX - dx) + 'px';
         chip.style.top  = (e.clientY - dy) + 'px';
       };
@@ -277,17 +289,20 @@
         if(state.pointerId!==e.pointerId) return;
         chip.removeEventListener('pointermove', move);
         chip.removeEventListener('pointerup', up);
+        try{ chip.releasePointerCapture(e.pointerId); }catch{}
         chip.classList.remove('dragging');
+        const prevPE = chip.style.pointerEvents; const prevVis = chip.style.visibility;
+        chip.style.pointerEvents='none'; chip.style.visibility='hidden';
+        const cx = e.clientX || state.lastXY.x; const cy = e.clientY || state.lastXY.y;
+        let slot = getDropSlotAt(cx, cy);
+        chip.style.pointerEvents=prevPE || ''; chip.style.visibility=prevVis || '';
         chip.style.left=''; chip.style.top='';
         state.dragging=null; state.pointerId=null;
-        const el = document.elementFromPoint(e.clientX, e.clientY);
-        const slot = el?.closest?.('.slot');
-        if(slot && !slot.querySelector('.inside')){
-          placeWordInSlot(chip, slot);
-        }
+        if(slot){ placeWordInSlot(chip, slot); }
       };
       chip.addEventListener('pointermove', move);
       chip.addEventListener('pointerup', up);
+      chip.addEventListener('pointercancel', up, {once:true});
     });
   }
 
@@ -309,7 +324,10 @@
     computeScore();
     if(Object.keys(state.placements).length===WORDS.length){
       const score = computeScore();
-      saveAttempt(score);
+      if(!state._savedOnce){
+        saveAttempt(score);
+        state._savedOnce = true;
+      }
     }
   }
 
@@ -327,6 +345,12 @@
 
   // ---------------------- Modal puntajes ----------------------
   function openScores(){
+    // Guardar si está completo y aún no se registró (cubre el caso del último drop)
+    if(Object.keys(state.placements).length===WORDS.length && !state._savedOnce){
+      const scoreNow = computeScore();
+      saveAttempt(scoreNow);
+      state._savedOnce = true;
+    }
     const rows = readScores();
     els.tblBody.innerHTML='';
     for(const r of rows){
@@ -365,7 +389,7 @@
   });
 
   els.btnReset.addEventListener('click', ()=>{
-    state.placements = {}; buildBoard(); computeScore();
+    state.placements = {}; state._savedOnce = false; buildBoard(); computeScore();
   });
 
   els.btnScoresIntro.addEventListener('click', openScores);
