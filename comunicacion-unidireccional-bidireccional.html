@@ -277,9 +277,8 @@
             
             // --- LÓGICA DE COMPATIBILIDAD (POINTER & CLICK) ---
             function handlePointerDown(e) {
-                // Previene conflictos con el click-to-place en dispositivos táctiles
-                e.preventDefault(); 
-                // Selecciona para el click-to-place si no se está arrastrando
+                // Se llama a handleWordClick para gestionar la selección de palabras para el modo "click-to-place".
+                // Se ha eliminado e.preventDefault() que impedía el inicio del arrastre en escritorio.
                 handleWordClick(e);
             }
 
@@ -413,3 +412,4 @@
     </script>
 </body>
 </html>
+
