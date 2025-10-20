@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Comunicación Profesor–Estudiante · Drag & Drop</title>
+<style>
+  :root{
+    --bg:#f5f7fb;--card:#ffffff;--ink:#0f172a;--muted:#64748b;--brand:#2563eb;--brand-2:#60a5fa;--ok:#16a34a;--warn:#f59e0b;--error:#ef4444;
+    --chip:#e2e8f0;--chip-ink:#0f172a;--slot:#3b82f6;--slot-ink:#fff;--slot-soft:#93c5fd;
+    --ring: 0 0 0 3px rgba(37,99,235,.25);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;}
+  body{margin:0; font-family:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; color:var(--ink); background:var(--bg);} 
+  .container{max-width:980px; margin:0 auto; padding:16px;}
+  .card{background:var(--card); border-radius:16px; box-shadow:0 10px 20px rgba(2,8,23,.06); padding:20px;}
+  .title{font-weight:800; font-size:clamp(20px,4vw,28px); text-align:center; color:#1e293b; letter-spacing:.2px;}
+  .subtitle{color:var(--muted); text-align:center; margin-top:-6px;}
+  .row{display:flex; gap:12px; flex-wrap:wrap; align-items:center}
+  .btn{appearance:none; border:0; background:var(--brand); color:#fff; padding:12px 16px; border-radius:12px; cursor:pointer; font-weight:700; box-shadow:0 6px 14px rgba(37,99,235,.25); transition:.2s transform,.2s box-shadow,.2s opacity;}
+  .btn.secondary{background:#e2e8f0; color:#0f172a; box-shadow:none}
+  .btn.ghost{background:transparent; color:var(--brand); box-shadow:none}
+  .btn:disabled{opacity:.5; cursor:not-allowed}
+  .input{width:100%; padding:14px 16px; border-radius:12px; border:1px solid #e2e8f0; font-size:16px; outline:none}
+  .input:focus{box-shadow:var(--ring); border-color:var(--brand)}
+  .bank{display:flex; flex-wrap:wrap; gap:12px; padding:8px;}
+  .chip{user-select:none; background:var(--chip); color:var(--chip-ink); padding:10px 14px; border-radius:9999px; font-weight:700; cursor:pointer; position:relative; touch-action:none;}
+  .chip.dragging{position:fixed; pointer-events:none; z-index:60; box-shadow:0 10px 24px rgba(2,8,23,.20)}
+  .chip[data-placed="true"]{background:#cbd5e1}
+  .board{background:#eef2ff; border-radius:16px; padding:12px;}
+  .panel{background:#dbeafe; border-radius:16px; padding:12px; margin-top:10px;}
+  .panel h3{margin:6px 8px 10px; font-size:20px; display:flex; align-items:center; gap:8px; color:#1d4ed8}
+  .slots{display:grid; grid-template-columns:repeat(auto-fit, minmax(140px,1fr)); gap:12px;}
+  .slot{background:var(--slot); color:var(--slot-ink); border-radius:16px; padding:18px 10px; display:flex; align-items:center; justify-content:center; height:64px; position:relative; outline:2px solid transparent;}
+  .slot.empty{background:linear-gradient(135deg,#3b82f6,#2563eb); opacity:.85}
+  .slot.highlight{box-shadow:var(--ring)}
+  .slot .placeholder{opacity:.9; font-weight:700}
+  .slot .inside{position:absolute; inset:6px; display:flex; align-items:center; justify-content:center}
+  .slot .inside .chip{background:#fff; padding:10px 12px; border-radius:9999px; font-weight:800;}
+  .header{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;}
+  .score{font-weight:800}
+  .hidden{display:none !important}
+  .muted{color:var(--muted)}
+  .notice{background:#ecfeff; border:1px dashed #bae6fd; padding:10px 12px; border-radius:12px; color:#0369a1}
+  dialog{border:none; border-radius:16px; width:min(800px,96vw); padding:0}
+  .modal{padding:18px}
+  table{width:100%; border-collapse:collapse}
+  th,td{padding:10px; border-bottom:1px solid #e2e8f0; text-align:left}
+  th{font-size:14px; color:#334155}
+  .badge{background:#dcfce7; color:#166534; padding:2px 8px; border-radius:9999px; font-weight:800;}
+  .footer{display:flex; justify-content:flex-end; gap:8px; padding:14px}
+  /* mobile tweaks */
+  @media (max-width:540px){
+    .slots{grid-template-columns:repeat(2,1fr)}
+  }
+</style>
+</head>
+<body>
+  <main class="container">
+    <!-- Pantalla 1: registro -->
+    <section id="screen-intro" class="card" aria-labelledby="intro-title">
+      <div class="title" id="intro-title">Actividad: Comunicación Profesor – Estudiante</div>
+      <p class="subtitle">Arrastra o pulsa para colocar cada palabra en la categoría correcta.</p>
+      <div class="row" style="margin-top:16px">
+        <div style="flex:1 1 260px">
+          <label for="nick" class="muted" style="font-weight:700">Nickname numérico (obligatorio)</label>
+          <input id="nick" class="input" inputmode="numeric" pattern="^\\d+$" placeholder="Ej.: 1024" autocomplete="off"/>
+          <p id="nickHelp" class="muted" style="margin:6px 2px 0">Sólo dígitos 0-9. Se mostrará junto a tu puntaje.</p>
+        </div>
+        <div class="row" style="flex:0 0 auto">
+          <button id="btnStart" class="btn" disabled>Comenzar</button>
+          <button id="btnScoresIntro" class="btn secondary">Ver puntajes</button>
+        </div>
+      </div>
+      <div class="notice" style="margin-top:14px">
+        <strong>Consejo:</strong> funciona en móviles y Safari. Puedes arrastrar con el dedo (Pointer Events) o pulsar una palabra y luego un espacio vacío para colocarla.
+      </div>
+    </section>
+
+    <!-- Pantalla 2: juego -->
+    <section id="screen-game" class="card hidden" aria-live="polite">
+      <div class="header">
+        <div class="row">
+          <div class="title" style="margin:0; font-size:22px">Comunicación Profesor – Estudiante</div>
+        </div>
+        <div class="row">
+          <span id="hudNick" class="badge">Nick: –</span>
+          <span id="hudScore" class="badge">Puntaje: 0/6</span>
+          <button id="btnScoresGame" class="btn secondary">Ver puntajes</button>
+          <button id="btnReset" class="btn ghost">Reiniciar</button>
+        </div>
+      </div>
+
+      <h4 class="muted" style="margin:12px 2px 8px">Arrastra o pulsa para colocar:</h4>
+      <div id="bank" class="bank" aria-label="Banco de palabras">
+        <!-- chips inserted by JS -->
+      </div>
+
+      <div class="board" role="region" aria-label="Tablero">
+        <div class="panel">
+          <h3>Comunicación Unidireccional <span aria-hidden>➡️</span></h3>
+          <div class="slots" id="slots-uni" data-group="uni"></div>
+        </div>
+        <div class="panel">
+          <h3>Comunicación Multidireccional <span aria-hidden>↔️</span></h3>
+          <div class="slots" id="slots-multi" data-group="multi"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal puntajes -->
+  <dialog id="scoresModal">
+    <div class="modal">
+      <div class="title" style="font-size:22px; margin-bottom:6px">Tabla de puntajes</div>
+      <p class="muted">Se almacenan en tu navegador (localStorage) bajo esta computadora/navegador.</p>
+      <div class="row" style="justify-content:flex-end; margin:8px 0">
+        <button id="btnDownload" class="btn secondary">Descargar JSON</button>
+      </div>
+      <div class="card" style="padding:0">
+        <table id="scoresTable" aria-label="Puntajes almacenados">
+          <thead><tr><th>Fecha</th><th>Nick</th><th>Puntaje</th><th>Total</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="footer"><button id="btnCloseModal" class="btn">Cerrar</button></div>
+  </dialog>
+
+<script>
+(() => {
+  // ---------------------- Datos base ----------------------
+  const WORDS = [
+    {text:"Foros", group:"multi"},
+    {text:"Blog", group:"uni"},
+    {text:"Wikis", group:"multi"},
+    {text:"Mailing", group:"uni"},
+    {text:"Redes Sociales", group:"multi"},
+    {text:"Video Conferencia", group:"multi"}
+  ];
+  const TARGETS = { uni:2, multi:4 }; // 2 arriba, 4 abajo (según imagen)
+
+  const q = sel => document.querySelector(sel);
+  const ce = (tag, props={}) => Object.assign(document.createElement(tag), props);
+
+  const els = {
+    screenIntro: q('#screen-intro'),
+    screenGame: q('#screen-game'),
+    nick: q('#nick'),
+    btnStart: q('#btnStart'),
+    btnScoresIntro: q('#btnScoresIntro'),
+    btnScoresGame: q('#btnScoresGame'),
+    btnReset: q('#btnReset'),
+    bank: q('#bank'),
+    slotsUni: q('#slots-uni'),
+    slotsMulti: q('#slots-multi'),
+    hudNick: q('#hudNick'),
+    hudScore: q('#hudScore'),
+    // modal
+    modal: q('#scoresModal'),
+    tblBody: q('#scoresTable tbody'),
+    btnCloseModal: q('#btnCloseModal'),
+    btnDownload: q('#btnDownload')
+  };
+
+  // ---------------------- Estado ----------------------
+  let state = {
+    nick: null,
+    placements: {}, // slotId -> word
+    dragging: null,
+    pointerId: null
+  };
+
+  // ---------------------- Utilidades ----------------------
+  const storageKey = 'comms-scores-v1';
+  const readScores = () => JSON.parse(localStorage.getItem(storageKey) || '[]');
+  const writeScores = (rows) => localStorage.setItem(storageKey, JSON.stringify(rows));
+  const saveAttempt = (score) => {
+    const rows = readScores();
+    rows.unshift({ ts: new Date().toISOString(), nick: state.nick, score, total: WORDS.length });
+    writeScores(rows.slice(0,200));
+  };
+
+  function shuffle(arr){
+    for(let i=arr.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [arr[i],arr[j]]=[arr[j],arr[i]];
+    }
+    return arr;
+  }
+
+  function computeScore(){
+    let ok=0;
+    for(const [slotId, word] of Object.entries(state.placements)){
+      const slot = document.getElementById(slotId);
+      const group = slot.dataset.group;
+      const correct = WORDS.find(w=>w.text===word)?.group;
+      if(correct===group) ok++;
+    }
+    els.hudScore.textContent = `Puntaje: ${ok}/${WORDS.length}`;
+    return ok;
+  }
+
+  function updateHudNick(){
+    els.hudNick.textContent = `Nick: ${state.nick}`;
+  }
+
+  // ---------------------- Construcción UI ----------------------
+  function buildBoard(){
+    // make slots
+    els.slotsUni.innerHTML=''; els.slotsMulti.innerHTML='';
+    let slotCount = 0;
+    const mkSlot = (group) => {
+      const id = `slot-${group}-${++slotCount}`;
+      const slot = ce('div', {className:'slot empty', id});
+      slot.dataset.group = group;
+      slot.innerHTML = `<span class="placeholder">Colocar aquí</span>`;
+      addSlotInteractions(slot);
+      return slot;
+    };
+    for(let i=0;i<TARGETS.uni;i++) els.slotsUni.appendChild(mkSlot('uni'));
+    for(let i=0;i<TARGETS.multi;i++) els.slotsMulti.appendChild(mkSlot('multi'));
+
+    // word bank
+    els.bank.innerHTML='';
+    for(const w of shuffle([...WORDS])){
+      const chip = ce('div', {className:'chip', textContent:w.text});
+      chip.dataset.word = w.text;
+      chip.setAttribute('role','button');
+      chip.setAttribute('aria-label',`Palabra ${w.text}`);
+      addChipInteractions(chip);
+      els.bank.appendChild(chip);
+    }
+  }
+
+  // ---------------------- Interacciones de Slots ----------------------
+  function addSlotInteractions(slot){
+    // click-to-place fallback
+    slot.addEventListener('click', (e)=>{
+      if(!slot.querySelector('.inside') && state.dragging==null && _selectedWord){
+        placeWordInSlot(_selectedWord, slot);
+        _selectedWord.classList.remove('selected');
+        _selectedWord=null;
+      }
+    });
+    slot.addEventListener('pointerenter', ()=> slot.classList.add('highlight'));
+    slot.addEventListener('pointerleave', ()=> slot.classList.remove('highlight'));
+  }
+
+  // ---------------------- Interacciones de Palabras ----------------------
+  let _selectedWord = null; // para click-to-place
+
+  function addChipInteractions(chip){
+    chip.addEventListener('click', (e)=>{
+      // toggle selección para click-to-place
+      if(state.dragging) return;
+      if(_selectedWord && _selectedWord!==chip) _selectedWord.classList.remove('selected');
+      chip.classList.toggle('selected');
+      _selectedWord = chip.classList.contains('selected') ? chip : null;
+    });
+
+    chip.addEventListener('pointerdown', (ev)=>{
+      if(ev.button!==0) return;
+      chip.setPointerCapture(ev.pointerId);
+      state.pointerId = ev.pointerId;
+      state.dragging = chip;
+      chip.classList.add('dragging');
+      const rect = chip.getBoundingClientRect();
+      const dx = ev.clientX - rect.left, dy = ev.clientY - rect.top;
+      const move = (e)=>{
+        if(state.pointerId!==e.pointerId) return;
+        chip.style.left = (e.clientX - dx) + 'px';
+        chip.style.top  = (e.clientY - dy) + 'px';
+      };
+      const up = (e)=>{
+        if(state.pointerId!==e.pointerId) return;
+        chip.removeEventListener('pointermove', move);
+        chip.removeEventListener('pointerup', up);
+        chip.classList.remove('dragging');
+        chip.style.left=''; chip.style.top='';
+        state.dragging=null; state.pointerId=null;
+        const el = document.elementFromPoint(e.clientX, e.clientY);
+        const slot = el?.closest?.('.slot');
+        if(slot && !slot.querySelector('.inside')){
+          placeWordInSlot(chip, slot);
+        }
+      };
+      chip.addEventListener('pointermove', move);
+      chip.addEventListener('pointerup', up);
+    });
+  }
+
+  // ---------------------- Colocar / quitar ----------------------
+  function placeWordInSlot(chip, slot){
+    const word = chip.dataset.word;
+    const shell = ce('div', {className:'inside'});
+    const inner = ce('div', {className:'chip', textContent:word});
+    inner.style.cursor='pointer';
+    inner.title='Tocar para devolver al banco';
+    inner.addEventListener('click', ()=> removeFromSlot(slot, word));
+    shell.appendChild(inner);
+    slot.innerHTML='';
+    slot.classList.remove('empty');
+    slot.appendChild(shell);
+    slot.setAttribute('aria-label',`Slot con ${word}`);
+    state.placements[slot.id] = word;
+    chip.remove(); // sacar del banco
+    computeScore();
+    if(Object.keys(state.placements).length===WORDS.length){
+      const score = computeScore();
+      saveAttempt(score);
+    }
+  }
+
+  function removeFromSlot(slot, word){
+    delete state.placements[slot.id];
+    slot.innerHTML='<span class="placeholder">Colocar aquí</span>';
+    slot.classList.add('empty');
+    // regresar al banco
+    const chip = ce('div', {className:'chip', textContent:word});
+    chip.dataset.word = word;
+    addChipInteractions(chip);
+    els.bank.appendChild(chip);
+    computeScore();
+  }
+
+  // ---------------------- Modal puntajes ----------------------
+  function openScores(){
+    const rows = readScores();
+    els.tblBody.innerHTML='';
+    for(const r of rows){
+      const tr = ce('tr');
+      const d = new Date(r.ts);
+      tr.innerHTML = `<td>${d.toLocaleString()}</td><td>${r.nick}</td><td>${r.score}</td><td>${r.total}</td>`;
+      els.tblBody.appendChild(tr);
+    }
+    els.modal.showModal();
+  }
+
+  els.btnCloseModal.addEventListener('click', ()=> els.modal.close());
+  els.btnDownload.addEventListener('click', ()=>{
+    const blob = new Blob([JSON.stringify(readScores(), null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = ce('a', {href:url, download:'puntajes_comunicacion.json'});
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 4000);
+  });
+
+  // ---------------------- Inicio / Validación ----------------------
+  function validateNick(){
+    const ok = /^\d+$/.test(els.nick.value.trim());
+    els.btnStart.disabled = !ok;
+    return ok;
+  }
+  els.nick.addEventListener('input', validateNick);
+
+  els.btnStart.addEventListener('click', ()=>{
+    if(!validateNick()) return;
+    state.nick = els.nick.value.trim();
+    updateHudNick();
+    buildBoard();
+    els.screenIntro.classList.add('hidden');
+    els.screenGame.classList.remove('hidden');
+  });
+
+  els.btnReset.addEventListener('click', ()=>{
+    state.placements = {}; buildBoard(); computeScore();
+  });
+
+  els.btnScoresIntro.addEventListener('click', openScores);
+  els.btnScoresGame .addEventListener('click', openScores);
+
+  // ---------------------- Funciones de prueba (consola) ----------------------
+  window.test = {
+    countDropzones(){ return document.querySelectorAll('.slot').length; },
+    countWords(){ return WORDS.length; },
+    state(){ return JSON.parse(JSON.stringify(state)); }
+  };
+
+})();
+</script>
+</body>
+</html>
