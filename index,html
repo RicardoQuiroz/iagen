@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Apps generadas con IA</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;700&family=Roboto+Mono:wght@400;500&display=swap"
+        rel="stylesheet" />
+    <!-- Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0"
+        rel="stylesheet" />
+
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "var(--color-primary)",
+                        secondary: "var(--color-secondary)",
+                        accent: "var(--color-accent)",
+                        surface: "var(--color-surface)",
+                        "background-light": "#f8fafc",
+                        "background-dark": "#0f172a",
+                    },
+                    fontFamily: {
+                        custom: "var(--font-family)",
+                    },
+                },
+            },
+        }
+    </script>
+    <style type="text/tailwindcss">
+        :root {
+            --color-primary: #3b82f6;
+            --color-secondary: #64748b;
+            --color-accent: #f59e0b;
+            --color-surface: #ffffff;
+            --font-family: 'Inter', sans-serif;
+            --font-size-base: 16px;
+        }
+        
+        body { 
+            font-family: var(--font-family); 
+            font-size: var(--font-size-base);
+        }
+        
+        .dark {
+            --color-surface: #1e293b;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.5); border-radius: 99px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(156, 163, 175, 0.8); }
+
+        .modal-enter { opacity: 0; transform: scale(0.95); }
+        .modal-enter-active { opacity: 1; transform: scale(1); transition: opacity 300ms, transform 300ms; }
+        .modal-exit { opacity: 1; transform: scale(1); }
+        .modal-exit-active { opacity: 0; transform: scale(0.95); transition: opacity 200ms, transform 200ms; }
+    </style>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 transition-colors duration-300">
+    <div id="root"></div>
+
+    <!-- React Dependencies -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/history@5/umd/history.development.js"></script>
+    <script src="https://unpkg.com/react-router@6.3.0/umd/react-router.development.js"></script>
+    <script src="https://unpkg.com/react-router-dom@6.3.0/umd/react-router-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo } = React;
+        const { createRoot } = ReactDOM;
+        const { HashRouter, Routes, Route, Link, useNavigate, useLocation } = ReactRouterDOM;
+
+        // --- Default Data & Constants ---
+        const DEFAULT_SETTINGS = {
+            darkMode: true,
+            colors: {
+                primary: "#3b82f6",
+                secondary: "#64748b",
+                accent: "#f59e0b",
+                surface: "#ffffff"
+            },
+            font: {
+                family: "'Inter', sans-serif",
+                size: 16
+            },
+            apiConfig: {
+                url: "",
+                password: ""
+            }
+        };
+
+        const DEFAULT_IMAGES = [
+            { id: 1, title: "Geometric Shadows", desc: "A study of modern lines.", descUrl: "", url: "https://images.unsplash.com/photo-1486718448742-163732cd1544?auto=format&fit=crop&q=80&w=800", action: "popup-img" },
+            { id: 2, title: "Neon City", desc: "Cyberpunk vibes.", descUrl: "https://en.wikipedia.org/wiki/Cyberpunk", url: "https://images.unsplash.com/photo-1517358133566-31a24cf2cbce?auto=format&fit=crop&q=80&w=800", action: "new-tab" },
+            { id: 3, title: "Misty Mountains", desc: "Serenity now.", descUrl: "", url: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=800", action: "popup-img" },
+            { id: 4, title: "Code", desc: "The matrix.", descUrl: "", url: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&q=80&w=800", action: "popup-img" }
+        ];
+
+        // --- Storage Helper ---
+        const useLocalStorage = (key, initialValue) => {
+            const [storedValue, setStoredValue] = useState(() => {
+                try {
+                    const item = window.localStorage.getItem(key);
+                    return item ? JSON.parse(item) : initialValue;
+                } catch (error) {
+                    console.error(error);
+                    return initialValue;
+                }
+            });
+
+            const setValue = (value) => {
+                try {
+                    const valueToStore = value instanceof Function ? value(storedValue) : value;
+                    setStoredValue(valueToStore);
+                    window.localStorage.setItem(key, JSON.stringify(valueToStore));
+                } catch (error) {
+                    console.error(error);
+                }
+            };
+            return [storedValue, setValue];
+        };
+
+        // --- Data Hook (Hybrid: LocalStorage or Google Sheets) ---
+        const useGalleryData = (settings, setSettings) => {
+            const [images, setImagesLocal] = useLocalStorage('gallery_images', DEFAULT_IMAGES);
+            const [isLoading, setIsLoading] = useState(false);
+            const [error, setError] = useState(null);
+
+            const isRemote = !!settings.apiConfig?.url;
+
+            // Fetch on mount or when URL changes
+            useEffect(() => {
+                if (!isRemote) return;
+
+                const fetchImages = async () => {
+                    setIsLoading(true);
+                    setError(null);
+                    try {
+                        const res = await fetch(settings.apiConfig.url);
+                        if (!res.ok) throw new Error("Error fetching data");
+                        const data = await res.json();
+                        // Transform and sort if needed
+                        const validData = Array.isArray(data) ? data.map(d => ({ ...d, id: Number(d.id) })) : [];
+                        setImagesLocal(validData); // Sync local cache
+                    } catch (err) {
+                        console.error("API Error:", err);
+                        setError("Error conectando con Google Sheets. Verifica la URL.");
+                    } finally {
+                        setIsLoading(false);
+                    }
+                };
+
+                fetchImages();
+            }, [settings.apiConfig.url]);
+
+            // Wrapper for actions that syncs with remote if configured
+            const handleAction = async (actionType, payload) => {
+                // Optimistic update for UI responsiveness
+                let revertedImages = [...images];
+
+                if (actionType === 'delete') {
+                    setImagesLocal(prev => prev.filter(img => img.id !== payload.id));
+                } else if (actionType === 'add') {
+                    setImagesLocal(prev => [...prev, payload.image]);
+                } else if (actionType === 'update') {
+                    setImagesLocal(prev => prev.map(img => img.id === payload.image.id ? payload.image : img));
+                }
+
+                if (!isRemote) return true; // Local only, done.
+
+                // Remote Sync
+                setIsLoading(true);
+                try {
+                    const res = await fetch(settings.apiConfig.url, {
+                        method: 'POST',
+                        mode: 'no-cors', // Google Script Web App limitation workaround request
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: actionType,
+                            authPassword: settings.apiConfig.password,
+                            ...payload
+                        })
+                    });
+
+                    // Since 'no-cors' returns opaque response, we assume success if no network error
+                    // Ideally we fetch again to confirm, but valid Google Script usually works.
+                    // For better UX, let's re-fetch data after a short delay
+                    setTimeout(async () => {
+                        const refreshRes = await fetch(settings.apiConfig.url);
+                        const refreshData = await refreshRes.json();
+                        setImagesLocal(refreshData.map(d => ({ ...d, id: Number(d.id) })));
+                        setIsLoading(false);
+                    }, 1000);
+
+                } catch (err) {
+                    console.error("Sync Error:", err);
+                    alert("Error sincronizando con Google Sheets. Los cambios no se guardaron remotamente.");
+                    setImagesLocal(revertedImages); // Revert optimistic update
+                    setIsLoading(false);
+                    return false;
+                }
+                return true;
+            };
+
+            return { images, setImages: setImagesLocal, isLoading, error, handleAction };
+        };
+
+        // --- Loader Component ---
+        const LoadingSpinner = () => (
+            <div className="fixed inset-0 bg-white/50 dark:bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center flex-col gap-4">
+                <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                <p className="font-bold text-primary animate-pulse">Sincronizando...</p>
+            </div>
+        );
+
+        // --- Modal Component ---
+        const Modal = ({ isOpen, onClose, content, type }) => {
+            if (!isOpen) return null;
+
+            return (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={onClose}>
+                    <div className="relative w-full max-w-5xl max-h-[90vh] bg-surface dark:bg-slate-800 rounded-xl overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
+                        <button onClick={onClose} className="absolute top-4 right-4 z-10 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition-colors">
+                            <span className="material-symbols-rounded">close</span>
+                        </button>
+                        {type === 'image' && (
+                            <img src={content} alt="Full view" className="w-full h-full object-contain max-h-[85vh]" />
+                        )}
+                        {type === 'iframe' && (
+                            <iframe src={content} className="w-full h-[80vh] border-0" title="Embedded Content" />
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- Public Gallery Screen ---
+        const PublicGallery = ({ images, settings }) => {
+            const [searchOpen, setSearchOpen] = useState(false);
+            const [searchQuery, setSearchQuery] = useState("");
+            const [modalState, setModalState] = useState({ isOpen: false, content: null, type: null });
+
+            const filteredImages = useMemo(() => {
+                if (!searchQuery) return images;
+                const lower = searchQuery.toLowerCase();
+                return images.filter(img =>
+                    img.title.toLowerCase().includes(lower) ||
+                    img.desc.toLowerCase().includes(lower)
+                );
+            }, [images, searchQuery]);
+
+            const handleThumbnailClick = (img) => {
+                if (img.action === 'new-tab') {
+                    window.open(img.url, '_blank');
+                } else if (img.action === 'popup-iframe') {
+                    setModalState({ isOpen: true, content: img.url, type: 'iframe' });
+                } else {
+                    // Default to image popup
+                    setModalState({ isOpen: true, content: img.url, type: 'image' });
+                }
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col">
+                    {/* Header */}
+                    <header className="sticky top-0 z-40 bg-surface/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-6 py-4">
+                        <div className="max-w-7xl mx-auto flex items-center justify-between h-12">
+                            <div className={`flex flex-col transition-all duration-300 ${searchOpen ? 'opacity-0 w-0 overflow-hidden md:w-auto md:opacity-100 md:overflow-visible' : 'opacity-100'}`}>
+                                <h1 className="text-xl font-bold tracking-tight text-primary whitespace-nowrap">Galería de Apps</h1>
+                                <p className="text-xs text-slate-500 whitespace-nowrap">Colección de Ricardo Quiroz</p>
+                            </div>
+
+                            <div className="flex items-center gap-4 flex-1 justify-end">
+                                <div className={`flex items-center justify-end transition-all duration-500 ease-out ${searchOpen ? 'w-full md:w-80' : 'w-10'}`}>
+                                    {searchOpen ? (
+                                        <div className="flex items-center w-full gap-2">
+                                            <input
+                                                ref={input => input && input.focus()}
+                                                type="text"
+                                                placeholder="Buscar..."
+                                                className="w-full rounded-full border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-sm py-2 px-4 focus:ring-2 focus:ring-primary outline-none shadow-inner"
+                                                value={searchQuery}
+                                                onChange={(e) => setSearchQuery(e.target.value)}
+                                            />
+                                            <button
+                                                onClick={() => { setSearchOpen(false); setSearchQuery(''); }}
+                                                className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-500 hover:text-red-500 transition-colors shrink-0"
+                                            >
+                                                <span className="material-symbols-rounded">close</span>
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            onClick={() => setSearchOpen(true)}
+                                            className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-primary hover:text-white transition-all text-slate-600 dark:text-slate-300 shadow-sm"
+                                        >
+                                            <span className="material-symbols-rounded">search</span>
+                                        </button>
+                                    )}
+                                </div>
+
+                                <div className={`flex items-center gap-4 transition-all duration-300 ${searchOpen ? 'w-0 opacity-0 overflow-hidden' : 'w-auto opacity-100'}`}>
+                                    <div className="w-px h-6 bg-slate-200 dark:bg-slate-800 mx-1"></div>
+                                    <Link to="/login" className="p-2 text-slate-400 hover:text-primary transition-colors">
+                                        <span className="material-symbols-rounded">admin_panel_settings</span>
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* Gallery Grid - Directly below header as requested */}
+                    <main className="flex-1 w-full max-w-7xl mx-auto p-6">
+                        {settings.apiConfig.url && images.length === 0 && !isLoading ? (
+                            // Loading state for initial fetch handled by parent, but empty check here
+                            <div className="text-center py-20"><div className="w-10 h-10 border-4 border-slate-300 border-t-primary rounded-full animate-spin mx-auto"></div></div>
+                        ) : filteredImages.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+                                <span className="material-symbols-rounded text-6xl mb-4">image_not_supported</span>
+                                <p>No se encontraron imágenes que coincidan con tu búsqueda.</p>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                                {filteredImages.map(img => (
+                                    <div key={img.id} className="group flex flex-col bg-surface dark:bg-slate-800 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden border border-slate-100 dark:border-slate-700">
+                                        {/* Thumbnail Image */}
+                                        <div
+                                            className="relative aspect-square overflow-hidden cursor-pointer"
+                                            onClick={() => handleThumbnailClick(img)}
+                                        >
+                                            <img src={img.url} alt={img.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" />
+
+                                            {/* Hover Overlay with Title */}
+                                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-4">
+                                                <h3 className="text-white font-bold text-center text-lg">{img.title}</h3>
+                                            </div>
+
+                                            <div className="absolute top-2 right-2 bg-black/50 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity delay-100">
+                                                {img.action === 'new-tab' && <span className="material-symbols-rounded text-sm">open_in_new</span>}
+                                                {img.action === 'popup-iframe' && <span className="material-symbols-rounded text-sm">web</span>}
+                                                {img.action === 'popup-img' && <span className="material-symbols-rounded text-sm">zoom_in</span>}
+                                            </div>
+                                        </div>
+
+                                        {/* Info Below Thumbnail */}
+                                        <div className="p-4 border-t border-slate-100 dark:border-slate-700">
+                                            {img.desc && <p className="text-sm text-slate-600 dark:text-slate-300 line-clamp-2 mb-2">{img.desc}</p>}
+                                            {img.descUrl && (
+                                                <a href={img.descUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:text-primary/80 transition-colors uppercase tracking-wider">
+                                                    Leer Más <span className="material-symbols-rounded text-[14px]">arrow_forward</span>
+                                                </a>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </main>
+
+                    <Modal
+                        isOpen={modalState.isOpen}
+                        onClose={() => setModalState({ ...modalState, isOpen: false })}
+                        content={modalState.content}
+                        type={modalState.type}
+                    />
+                </div>
+            );
+        };
+
+        // --- Login Screen ---
+        const LoginScreen = () => {
+            const navigate = useNavigate();
+            // Bypass logic as originally requested, but keeping UI cues from prompt
+            const handleLogin = (e) => {
+                e.preventDefault();
+                navigate('/admin');
+            };
+
+            return (
+                <div className="min-h-screen bg-background-light dark:bg-background-dark flex flex-col items-center justify-center p-4 relative overflow-hidden">
+                    {/* Background decorations */}
+                    <div className="absolute -top-40 -right-40 w-96 h-96 bg-primary/20 rounded-full blur-3xl pointer-events-none"></div>
+                    <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-secondary/20 rounded-full blur-3xl pointer-events-none"></div>
+
+                    <div className="bg-surface dark:bg-slate-800 p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-200 dark:border-slate-700 relative z-10">
+                        <div className="text-center mb-8">
+                            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-4">
+                                <span className="material-symbols-rounded text-3xl">admin_panel_settings</span>
+                            </div>
+                            <h2 className="text-2xl font-bold mb-2 dark:text-white">Acceso Admin</h2>
+                            <p className="text-slate-500 dark:text-slate-400">Ingresa tus credenciales para administrar la galería.</p>
+                        </div>
+
+                        <form onSubmit={handleLogin} className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">Usuario</label>
+                                <input type="text" className="w-full rounded-lg border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 px-4 py-3 focus:ring-2 focus:ring-primary outline-none" placeholder="admin" />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">Contraseña</label>
+                                <input type="password" className="w-full rounded-lg border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 px-4 py-3 focus:ring-2 focus:ring-primary outline-none" placeholder="••••••••" />
+                            </div>
+                            <button type="submit" className="w-full bg-primary hover:brightness-110 text-white font-bold py-3 rounded-lg transition-all shadow-lg shadow-primary/25">
+                                Entrar al Panel
+                            </button>
+                        </form>
+
+                        <div className="mt-6 text-center">
+                            <Link to="/" className="text-sm text-slate-500 hover:text-primary transition-colors flex items-center justify-center gap-1">
+                                <span className="material-symbols-rounded text-sm">arrow_back</span> Volver a la Galería
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- Admin Dashboard Screen ---
+        const AdminDashboard = ({ images, dataPackage, settings, setSettings }) => {
+            const { handleAction, isLoading, error } = dataPackage;
+            const [activeTab, setActiveTab] = useState('content'); // content | settings
+            const [editingImg, setEditingImg] = useState(null); // null = list mode, object = edit/add mode
+
+            // -- Content Actions --
+            const handleDelete = (id) => {
+                if (confirm('¿Estás seguro de que quieres borrar esta imagen?')) {
+                    handleAction('delete', { id });
+                }
+            };
+
+            const handleMove = (index, direction) => {
+                // Reordering logic remains local for now as Sheets reorder is complex via simple API
+                // User can reorder in Sheet directly or we implement complex reorder later
+                const newImages = [...images];
+                if (direction === 'up' && index > 0) {
+                    [newImages[index], newImages[index - 1]] = [newImages[index - 1], newImages[index]];
+                } else if (direction === 'down' && index < newImages.length - 1) {
+                    [newImages[index], newImages[index + 1]] = [newImages[index + 1], newImages[index]];
+                }
+                dataPackage.setImages(newImages);
+                // Reminder for remote users
+                if (settings.apiConfig.url) alert("Nota: El reordenamiento solo es visible en esta sesión. Para reordenar permanentemente en Google Sheets, mueve las filas directamente en la hoja de cálculo.");
+            };
+
+            const handleSaveImage = (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const newImg = {
+                    id: editingImg.id || Date.now(),
+                    title: formData.get('title'),
+                    desc: formData.get('desc'),
+                    url: formData.get('url'),
+                    descUrl: formData.get('descUrl'),
+                    action: formData.get('action')
+                };
+
+                if (editingImg.id) {
+                    handleAction('update', { image: newImg });
+                } else {
+                    handleAction('add', { image: newImg });
+                }
+                setEditingImg(null);
+            };
+
+            // -- Settings Actions --
+            const handleSettingChange = (category, key, value) => {
+                setSettings(prev => ({
+                    ...prev,
+                    [category]: {
+                        ...prev[category],
+                        [key]: value
+                    }
+                }));
+            };
+
+            return (
+                <div className="min-h-screen bg-background-light dark:bg-background-dark flex flex-col md:flex-row">
+                    {/* Sidebar Navigation */}
+                    <aside className="w-full md:w-64 bg-surface dark:bg-slate-900 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800 p-4 flex flex-col gap-2 shrink-0">
+                        <div className="p-4 mb-4 flex items-center gap-3">
+                            <div className="bg-primary text-white p-2 rounded-lg"><span className="material-symbols-rounded">tune</span></div>
+                            <h2 className="font-bold text-lg dark:text-white">Gestor</h2>
+                        </div>
+
+                        <button
+                            onClick={() => { setActiveTab('content'); setEditingImg(null); }}
+                            className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${activeTab === 'content' ? 'bg-primary/10 text-primary' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                        >
+                            <span className="material-symbols-rounded">photo_library</span> Contenido
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('settings')}
+                            className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${activeTab === 'settings' ? 'bg-primary/10 text-primary' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                        >
+                            <span className="material-symbols-rounded">palette</span> Configuración
+                        </button>
+
+                        <div className="mt-auto pt-4 border-t border-slate-200 dark:border-slate-800">
+                            <Link to="/" className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors">
+                                <span className="material-symbols-rounded">logout</span> Cerrar Sesión
+                            </Link>
+                        </div>
+                    </aside>
+
+                    {/* Main Content Area */}
+                    <main className="flex-1 p-6 md:p-10 overflow-y-auto h-[calc(100vh)] relative">
+                        {isLoading && <LoadingSpinner />}
+                        {error && <div className="p-4 mb-6 bg-red-50 text-red-700 rounded-lg border border-red-200">{error}</div>}
+
+                        {activeTab === 'content' && !editingImg && (
+                            <div className="max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-4">
+                                <div className="flex justify-between items-center mb-8">
+                                    <div>
+                                        <h2 className="text-2xl font-bold dark:text-white">Biblioteca</h2>
+                                        <p className="text-slate-500 text-sm">Gestiona, reordena y edita las imágenes.</p>
+                                    </div>
+                                    <button
+                                        onClick={() => setEditingImg({})}
+                                        className="bg-primary hover:brightness-110 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 shadow-lg shadow-primary/20"
+                                    >
+                                        <span className="material-symbols-rounded">add</span> Añadir Nueva
+                                    </button>
+                                </div>
+
+                                <div className="space-y-3">
+                                    {images.map((img, idx) => (
+                                        <div key={img.id} className="bg-surface dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center gap-4 group">
+                                            <div className="flex-col gap-1 hidden sm:flex">
+                                                <button onClick={() => handleMove(idx, 'up')} disabled={idx === 0} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-30"><span className="material-symbols-rounded text-lg">keyboard_arrow_up</span></button>
+                                                <button onClick={() => handleMove(idx, 'down')} disabled={idx === images.length - 1} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-30"><span className="material-symbols-rounded text-lg">keyboard_arrow_down</span></button>
+                                            </div>
+
+                                            <div className="w-20 h-20 shrink-0 bg-slate-100 rounded-lg overflow-hidden">
+                                                <img src={img.url} className="w-full h-full object-cover" />
+                                            </div>
+
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="font-bold text-slate-900 dark:text-white truncate">{img.title}</h3>
+                                                <p className="text-xs text-slate-500 line-clamp-1">{img.desc || "Sin descripción"}</p>
+                                                <div className="flex gap-2 mt-2">
+                                                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-medium uppercase tracking-wider">{img.action}</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-2 pl-4 border-l border-slate-100 dark:border-slate-700">
+                                                <button onClick={() => setEditingImg(img)} className="p-2 text-slate-500 hover:text-primary transition-colors tooltip" title="Edit">
+                                                    <span className="material-symbols-rounded">edit</span>
+                                                </button>
+                                                <button onClick={() => handleDelete(img.id)} className="p-2 text-slate-500 hover:text-red-500 transition-colors" title="Delete">
+                                                    <span className="material-symbols-rounded">delete</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'content' && editingImg && (
+                            <div className="max-w-2xl mx-auto animate-in fade-in zoom-in-95">
+                                <div className="mb-6 flex items-center gap-4">
+                                    <button onClick={() => setEditingImg(null)} className="w-10 h-10 rounded-full bg-surface dark:bg-slate-800 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                                        <span className="material-symbols-rounded">arrow_back</span>
+                                    </button>
+                                    <h2 className="text-xl font-bold dark:text-white">{editingImg.id ? 'Editar Imagen' : 'Añadir Nueva Imagen'}</h2>
+                                </div>
+
+                                <form onSubmit={handleSaveImage} className="bg-surface dark:bg-slate-800 p-6 md:p-8 rounded-xl border border-slate-200 dark:border-slate-700 space-y-6">
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">URL de la Imagen</label>
+                                            <input name="url" defaultValue={editingImg.url} required className="w-full rounded-lg bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-600 px-4 py-2.5 focus:ring-2 focus:ring-primary outline-none" placeholder="https://..." />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Título</label>
+                                            <input name="title" defaultValue={editingImg.title} required className="w-full rounded-lg bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-600 px-4 py-2.5 focus:ring-2 focus:ring-primary outline-none" placeholder="Título de la imagen" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Descripción (Debajo de la miniatura)</label>
+                                            <textarea name="desc" defaultValue={editingImg.desc} rows="3" className="w-full rounded-lg bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-600 px-4 py-2.5 focus:ring-2 focus:ring-primary outline-none" placeholder="Breve descripción..."></textarea>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">URL del enlace 'Leer Más'</label>
+                                                <input name="descUrl" defaultValue={editingImg.descUrl} className="w-full rounded-lg bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-600 px-4 py-2.5 focus:ring-2 focus:ring-primary outline-none" placeholder="https:// (opcional)" />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Acción al hacer clic</label>
+                                                <select name="action" defaultValue={editingImg.action || 'popup-img'} className="w-full rounded-lg bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-600 px-4 py-2.5 focus:ring-2 focus:ring-primary outline-none cursor-pointer">
+                                                    <option value="popup-img">Imagen Emergente (Lightbox)</option>
+                                                    <option value="popup-iframe">Sitio Web Emergente (Embed)</option>
+                                                    <option value="new-tab">Abrir en Pestaña Nueva</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-4 flex gap-4">
+                                        <button type="button" onClick={() => setEditingImg(null)} className="flex-1 px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">Cancelar</button>
+                                        <button type="submit" className="flex-1 bg-primary text-white font-bold px-4 py-3 rounded-lg hover:brightness-110 shadow-lg shadow-primary/20 transition-colors">Guardar Cambios</button>
+                                    </div>
+                                </form>
+                            </div>
+                        )}
+
+                        {activeTab === 'settings' && (
+                            <div className="max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-4">
+                                <h2 className="text-2xl font-bold dark:text-white mb-8">Configuración de Interfaz</h2>
+
+                                <div className="space-y-8">
+                                    {/* Appearance */}
+                                    <section className="bg-surface dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
+                                        <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><span className="material-symbols-rounded text-primary">contrast</span> Apariencia</h3>
+                                        <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-lg">
+                                            <div>
+                                                <span className="block font-medium dark:text-white">Modo Oscuro</span>
+                                                <span className="text-xs text-slate-500">Alternar tema claro/oscuro</span>
+                                            </div>
+                                            <button
+                                                onClick={() => setSettings(p => ({ ...p, darkMode: !p.darkMode }))}
+                                                className={`w-14 h-8 rounded-full relative transition-colors duration-300 ${settings.darkMode ? 'bg-primary' : 'bg-slate-300'}`}
+                                            >
+                                                <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-transform duration-300 shadow-sm flex items-center justify-center ${settings.darkMode ? 'left-[calc(100%-1.75rem)]' : 'left-1'}`}>
+                                                    <span className={`material-symbols-rounded text-[14px] ${settings.darkMode ? 'text-primary' : 'text-slate-400'}`}>
+                                                        {settings.darkMode ? 'dark_mode' : 'light_mode'}
+                                                    </span>
+                                                </div>
+                                            </button>
+                                        </div>
+                                    </section>
+
+                                    {/* Typography */}
+                                    <section className="bg-surface dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
+                                        <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><span className="material-symbols-rounded text-primary">text_fields</span> Tipografía</h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div>
+                                                <label className="block text-sm font-semibold text-slate-500 mb-2">Fuente</label>
+                                                <select
+                                                    value={settings.font.family}
+                                                    onChange={(e) => handleSettingChange('font', 'family', e.target.value)}
+                                                    className="w-full rounded-lg bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-600 px-3 py-2 text-sm focus:ring-2 focus:ring-primary"
+                                                >
+                                                    <option value="'Inter', sans-serif">Inter (Modern Sans)</option>
+                                                    <option value="'Playfair Display', serif">Playfair (Elegant Serif)</option>
+                                                    <option value="'Roboto Mono', monospace">Roboto (Technical Mono)</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-semibold text-slate-500 mb-2">Tamaño Base ({settings.font.size}px)</label>
+                                                <input
+                                                    type="range" min="12" max="20" step="1"
+                                                    value={settings.font.size}
+                                                    onChange={(e) => handleSettingChange('font', 'size', parseInt(e.target.value))}
+                                                    className="w-full accent-primary"
+                                                />
+                                            </div>
+                                        </div>
+                                    </section>
+
+                                    {/* Color Palette */}
+                                    <section className="bg-surface dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
+                                        <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><span className="material-symbols-rounded text-primary">palette</span> Colores de Marca</h3>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            {Object.entries(settings.colors).map(([key, val]) => (
+                                                key !== 'surface' && (
+                                                    <div key={key}>
+                                                        <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">{key}</label>
+                                                        <div className="flex items-center gap-2">
+                                                            <input
+                                                                type="color"
+                                                                value={val}
+                                                                onChange={(e) => handleSettingChange('colors', key, e.target.value)}
+                                                                className="w-10 h-10 rounded cursor-pointer border-0 p-0 overflow-hidden"
+                                                            />
+                                                            <span className="text-xs font-mono text-slate-600 dark:text-slate-400">{val}</span>
+                                                        </div>
+                                                    </div>
+                                                )
+                                            ))}
+                                        </div>
+                                    </section>
+
+                                    {/* Data Persistence Info */}
+                                    <section className="bg-surface dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
+                                        <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                                            <span className="material-symbols-rounded text-primary">cloud_sync</span> Conexión Google Sheets
+                                        </h3>
+                                        <div className="space-y-4">
+                                            <div className="p-4 bg-sky-50 dark:bg-sky-900/10 border border-sky-200 dark:border-sky-900/30 rounded-lg">
+                                                <p className="text-sm text-sky-800 dark:text-sky-200">
+                                                    Conecta tu hoja de cálculo para gestionar la galería dinámicamente sin editar código.
+                                                </p>
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">URL de la Aplicación Web (GAS)</label>
+                                                <input
+                                                    type="url"
+                                                    value={settings.apiConfig.url}
+                                                    onChange={(e) => handleSettingChange('apiConfig', 'url', e.target.value)}
+                                                    className="w-full rounded-lg bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-600 px-4 py-2.5 focus:ring-2 focus:ring-primary outline-none text-sm font-mono"
+                                                    placeholder="https://script.google.com/macros/s/AKfycbyR5Qrh8VhAwMOUvUn1zZjRFIZk7jlJbLjDDEhURkUjSWLFviL-1e6yyPIyihyMCFxydg/exec"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Contraseña de API (Script)</label>
+                                                <input
+                                                    type="password"
+                                                    value={settings.apiConfig.password}
+                                                    onChange={(e) => handleSettingChange('apiConfig', 'password', e.target.value)}
+                                                    className="w-full rounded-lg bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-600 px-4 py-2.5 focus:ring-2 focus:ring-primary outline-none"
+                                                    placeholder="admin_secret_123"
+                                                />
+                                            </div>
+                                        </div>
+                                    </section>
+                                </div>
+                            </div>
+
+                        )}
+                    </main>
+                </div>
+            );
+        };
+
+        // --- Main App ---
+        const App = () => {
+            const [settings, setSettings] = useLocalStorage('gallery_settings', DEFAULT_SETTINGS);
+            const { images, setImages, isLoading, error, handleAction } = useGalleryData(settings, setSettings);
+
+            // Apply global effects based on settings
+            useEffect(() => {
+                const root = document.documentElement;
+
+                // Dark Mode
+                if (settings.darkMode) {
+                    root.classList.add('dark');
+                } else {
+                    root.classList.remove('dark');
+                }
+
+                // CSS Variables for Colors and Fonts
+                root.style.setProperty('--color-primary', settings.colors.primary);
+                root.style.setProperty('--color-secondary', settings.colors.secondary);
+                root.style.setProperty('--color-accent', settings.colors.accent);
+                root.style.setProperty('--font-family', settings.font.family);
+                root.style.setProperty('--font-size-base', `${settings.font.size}px`);
+
+            }, [settings]);
+
+            return (
+                <HashRouter>
+                    <Routes>
+                        <Route path="/" element={<PublicGallery images={images} settings={settings} />} />
+                        <Route path="/login" element={<LoginScreen />} />
+                        <Route
+                            path="/admin"
+                            element={
+                                <AdminDashboard
+                                    images={images}
+                                    dataPackage={{ setImages, isLoading, error, handleAction }}
+                                    settings={settings}
+                                    setSettings={setSettings}
+                                />
+                            }
+                        />
+                    </Routes>
+                    {isLoading && <LoadingSpinner />}
+                </HashRouter>
+            );
+        };
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>
