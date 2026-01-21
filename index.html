@@ -326,7 +326,7 @@
 
                     {/* Gallery Grid - Directly below header as requested */}
                     <main className="flex-1 w-full max-w-7xl mx-auto p-6">
-                        {settings.apiConfig.url && images.length === 0 && !isLoading ? (
+                        {settings.apiConfig?.url && images.length === 0 && !isLoading ? (
                             // Loading state for initial fetch handled by parent, but empty check here
                             <div className="text-center py-20"><div className="w-10 h-10 border-4 border-slate-300 border-t-primary rounded-full animate-spin mx-auto"></div></div>
                         ) : filteredImages.length === 0 ? (
