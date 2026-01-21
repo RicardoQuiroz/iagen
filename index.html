@@ -116,7 +116,13 @@
             const [storedValue, setStoredValue] = useState(() => {
                 try {
                     const item = window.localStorage.getItem(key);
-                    return item ? JSON.parse(item) : initialValue;
+                    let parsed = item ? JSON.parse(item) : initialValue;
+
+                    // Deep merge for settings to ensure new fields (like apiConfig) exist
+                    if (key === 'gallery_settings') {
+                        parsed = { ...DEFAULT_SETTINGS, ...parsed, apiConfig: { ...DEFAULT_SETTINGS.apiConfig, ...(parsed.apiConfig || {}) } };
+                    }
+                    return parsed;
                 } catch (error) {
                     console.error(error);
                     return initialValue;
@@ -715,7 +721,7 @@
                                                     value={(settings.apiConfig && settings.apiConfig.url) || ''}
                                                     onChange={(e) => handleSettingChange('apiConfig', 'url', e.target.value)}
                                                     className="w-full rounded-lg bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-600 px-4 py-2.5 focus:ring-2 focus:ring-primary outline-none text-sm font-mono"
-                                                    placeholder="https://script.google.com/macros/s/AKfycbyR5Qrh8VhAwMOUvUn1zZjRFIZk7jlJbLjDDEhURkUjSWLFviL-1e6yyPIyihyMCFxydg/exec"
+                                                    placeholder="https://script.google.com/macros/s/..."
                                                 />
                                             </div>
 
@@ -726,7 +732,7 @@
                                                     value={(settings.apiConfig && settings.apiConfig.password) || ''}
                                                     onChange={(e) => handleSettingChange('apiConfig', 'password', e.target.value)}
                                                     className="w-full rounded-lg bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-600 px-4 py-2.5 focus:ring-2 focus:ring-primary outline-none"
-                                                    placeholder="admin_secret_123"
+                                                    placeholder="La contraseña definida en tu código GAS"
                                                 />
                                             </div>
                                         </div>
@@ -762,14 +768,6 @@
                 root.style.setProperty('--color-accent', settings.colors.accent);
                 root.style.setProperty('--font-family', settings.font.family);
                 root.style.setProperty('--font-size-base', `${settings.font.size}px`);
-
-                // Data Migration: Ensure apiConfig exists for users upgrading from older version
-                if (!settings.apiConfig) {
-                    setSettings(prev => ({
-                        ...prev,
-                        apiConfig: { url: "", password: "" }
-                    }));
-                }
 
             }, [settings]);
 
