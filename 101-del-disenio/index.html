@@ -1,263 +1,1036 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Moon, Sun, RotateCcw, ArrowRight, ArrowLeft, RefreshCw, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
 
-// Datos corregidos con backticks para permitir comillas internas sin errores de sintaxis
-const FLASHCARDS_DATA = [
-  { id: 1, question: `¿Cuál es el significado real del diseño según Gui Bonsiepe?`, answer: `Ser un solucionador inteligente de problemas.`, explanation: `Bonsiepe busca rescatar al diseño de su reducción a un mero espectáculo mediático, devolviéndole su propósito central de resolver necesidades funcionales.` },
-  { id: 2, question: `Bonsiepe afirma que el diseño actual ha dejado de ser un solucionador de problemas para convertirse en un _____ _____.`, answer: `evento mediático.`, explanation: `Se critica que hoy el diseño se use más como una herramienta de marketing y exhibición que como una disciplina de intervención crítica.` },
-  { id: 3, question: `¿En qué se basa el discurso proyectual contemporáneo según la crítica de Bonsiepe?`, answer: `En el uso de palabras de moda o tendencias en lugar de cuestiones críticas.`, explanation: `El discurso ha pasado de un análisis profundo a la adopción de términos superficiales que no cuestionan la realidad social.` },
-  { id: 4, question: `¿Qué función cumplen las revistas de diseño en el panorama actual según el autor?`, answer: `Funcionan como cajas de resonancia para el diseño como espectáculo.`, explanation: `En lugar de fomentar el debate crítico, estas publicaciones suelen amplificar los aspectos estéticos y espectaculares del diseño.` },
-  { id: 5, question: `¿Cuál era el objetivo principal de los protagonistas del movimiento de la "Buena Forma"?`, answer: `Perseguían fines sociopedagógicos y funcionales.`, explanation: `Este movimiento histórico buscaba educar a la sociedad y mejorar la calidad de vida a través de objetos útiles y bien diseñados.` },
-  { id: 6, question: `¿Cuál es el objetivo exclusivo de los modernos "Life Style Centers" según Bonsiepe?`, answer: `Perseguir fines comerciales y de marketing.`, explanation: `A diferencia de los movimientos históricos, los centros de "estilo de vida" actuales se enfocan únicamente en la venta y la imagen de marca.` },
-  { id: 7, question: `¿Cómo define Bonsiepe la relación ideal entre el diseño y la ciencia?`, answer: `Como una relación entre la complejidad temática y la metodología científica.`, explanation: `El diseño debe emplear métodos científicos cuando la complejidad del problema (técnica o ambiental) supera la mera intuición.` },
-  { id: 8, question: `Según Bonsiepe ¿cuándo debe el diseño buscar el conocimiento científico?`, answer: `Técnicamente cuando la temática del proyecto lo exige.`, explanation: `No todo proyecto requiere ciencia, pero aquellos con implicaciones técnicas rigurosas demandan conocimientos especializados.` },
-  { id: 9, question: `Mencione un ejemplo de Bonsiepe donde el conocimiento científico es fundamental para el diseño.`, answer: `El diseño de un envase de leche para minimizar el impacto medioambiental.`, explanation: `Resolver problemas ecológicos requiere análisis de materiales y ciclos de vida, lo cual es una tarea científica.` },
-  { id: 10, question: `¿Qué doctrina económica prioriza la libre actuación del mercado y la mínima intervención del Estado según el texto?`, answer: `El neoliberalismo.`, explanation: `Bonsiepe cuestiona cómo este modelo económico ha empujado al diseño a servir casi exclusivamente a los intereses del mercado.` },
-  { id: 11, question: `Bonsiepe propone rescatar la democracia como un concepto político y social alejándola de los puros _____ _____.`, answer: `intereses económicos.`, explanation: `La democracia debe ser un espacio de bienestar social y participación, no solo un mecanismo de transacciones mercantiles.` },
-  { id: 12, question: `¿Cómo define Bonsiepe el concepto de democracia en el contexto del diseño?`, answer: `Como la creación de un espacio de autodeterminación para un proyecto propio.`, explanation: `Diseñar democráticamente significa dar a las personas las herramientas para que decidan y den forma a sus propias vidas.` },
-  { id: 13, question: `Terminología de Kant: ¿Cómo se denomina la sujeción del individuo a la voluntad de terceros o de un orden impuesto?`, answer: `Heteronomía.`, explanation: `El diseño debe aspirar a reducir este estado de dependencia, donde el individuo es controlado por fuerzas externas.` },
-  { id: 14, question: `¿Cuál es el objetivo de Bonsiepe al adherirse a un concepto sustancial de democracia?`, answer: `La reducción de la heteronomía.`, explanation: `Una democracia sustantiva empodera al ciudadano, haciéndolo menos dependiente de órdenes impuestos desde fuera.` },
-  { id: 15, question: `¿Qué postura crítica asume Bonsiepe frente a las "grandes narrativas" mencionadas por Fredric Jameson?`, answer: `Rechaza el conformismo y cree que es necesario creer en la posibilidad de un futuro mejor.`, explanation: `El autor se opone al derrotismo, defendiendo que el diseñador tiene un rol activo y esperanzador en el cambio social.` },
-  { id: 16, question: `Según Edward Said ¿qué ejercicio define al humanismo?`, answer: `El ejercicio de competencias lingüísticas para comprender y manejar productos del lenguaje en la historia.`, explanation: `Esta definición resalta la importancia de entender el mundo mediante la interpretación crítica de sus productos y mensajes.` },
-  { id: 17, question: `Concepto: Humanismo Proyectual`, answer: `Ejercicio de capacidades proyectuales para interpretar necesidades sociales y elaborar propuestas emancipadoras.`, explanation: `Es la aplicación ética del diseño para ayudar a liberar y empoderar a grupos sociales marginados.` },
-  { id: 18, question: `¿Qué tipo de artefactos busca crear el humanismo proyectual según Bonsiepe?`, answer: `Artefactos instrumentales y artefactos semióticos.`, explanation: `Se enfoca tanto en herramientas funcionales (instrumentales) como en comunicaciones con significado (semióticas) que ayuden a la emancipación.` },
-  { id: 19, question: `¿Cuál es la finalidad social del humanismo proyectual?`, answer: `Reducir la dominación y la exclusión social.`, explanation: `Su objetivo final es usar el diseño como una herramienta de justicia contra la desigualdad y el control social.` },
-  { id: 20, question: `¿Por qué Kenneth Galbraith critica el uso del término "mercado"?`, answer: `Porque se utiliza para evitar las connotaciones negativas asociadas al término capitalismo.`, explanation: `El término se usa a menudo como una máscara neutral para ocultar las dinámicas de poder del sistema capitalista.` },
-  { id: 21, question: `¿Qué papel juegan las grandes corporaciones respecto al diseño según el texto?`, answer: `Utilizan el diseño como herramienta para expandir y mantener su poder.`, explanation: `Las empresas aprovechan el diseño para dominar mercados e influir en el comportamiento del consumidor en su beneficio.` },
-  { id: 22, question: `¿Cuál es el punto de contacto entre la manipulación y el diseño según Bonsiepe?`, answer: `La producción de la apariencia.`, explanation: `El diseño puede usarse de forma engañosa para que las cosas parezcan mejores o diferentes de lo que realmente son.` },
-  { id: 23, question: `¿Qué beneficio atribuye el autor a la industrialización en el contexto del consumo?`, answer: `La democratización del consumo mediante el acceso a tecnologías y productos útiles.`, explanation: `La industria permite que herramientas y bienes antes exclusivos lleguen a la mayoría, mejorando la calidad de vida general.` },
-  { id: 24, question: `Según el texto ¿qué elementos no deben dominar completamente un proyecto de diseño en detrimento de la utilidad?`, answer: `Los aspectos simbólicos y comunicativos.`, explanation: `Aunque el significado es importante, no debe eclipsar la función real y la utilidad del objeto diseñado.` },
-  { id: 25, question: `¿Qué riesgo menciona Bonsiepe al actuar bajo una normativa única o autoritaria en el diseño?`, answer: `El riesgo de convertirse en un "Gran Inquisidor" que impone reglas.`, explanation: `Los diseñadores deben evitar el dogmatismo y reconocer la diversidad de necesidades y puntos de vista.` },
-  { id: 26, question: `En el contexto de una ciudad "convivial" ¿cómo define Bonsiepe los espacios?`, answer: `Como lugares indeterminados donde se median intereses legítimos diferentes o contrarios.`, explanation: `Los espacios urbanos deben facilitar la negociación pacífica de las distintas visiones sociales.` },
-  { id: 27, question: `Virtud del diseño: Ligereza`, answer: `Considerar el flujo de materiales y energía para evitar el exceso o la superficialidad.`, explanation: `Este principio aboga por la eficiencia y sostenibilidad, evitando el desperdicio de recursos en decoraciones innecesarias.` },
-  { id: 28, question: `¿Qué riesgo corre el diseño cuando se reduce exclusivamente a lo efímero como las joyas o muebles de autor?`, answer: `Perder su dimensión crítica y ética vinculada a las preocupaciones básicas de la sociedad.`, explanation: `Centrarse solo en el lujo o el ego artístico desconecta al diseño de las necesidades reales de la mayoría.` },
-  { id: 29, question: `Bonsiepe defiende que el diseñador no debe ser solo un técnico sino también un _____ _____.`, answer: `pensador crítico.`, explanation: `La habilidad técnica no basta; el diseñador debe entender el impacto social y político de su trabajo.` },
-  { id: 30, question: `¿Qué significa "diseñar" en el contexto de la intervención en la realidad según Bonsiepe?`, answer: `Tener la predisposición a cambiar la realidad sin distanciarse de ella.`, explanation: `Diseñar es un acto de compromiso práctico para mejorar el mundo a través de la intervención directa.` },
-  { id: 31, question: `¿Qué debe defender enérgicamente cualquier sociedad que se defina como democrática?`, answer: `Los intereses públicos frente a los intereses privados desenfrenados.`, explanation: `La verdadera democracia protege los bienes comunes y el bienestar social por encima del lucro privado desmedido.` },
-  { id: 32, question: `Virtud del diseño: Alteridad`, answer: `El reconocimiento y respeto por las diferencias culturales frente a la homogeneización de la globalización.`, explanation: `El diseño debe celebrar la identidad local y la diversidad en lugar de imponer un estilo global único.` },
-  { id: 33, question: `¿Cuál es la relación entre la alteridad y la autonomía de un grupo social?`, answer: `Permite que cada grupo decida su propio camino sin imposiciones externas.`, explanation: `Respetar la diferencia empodera a las comunidades para que definan su propio desarrollo e identidad.` },
-  { id: 34, question: `Concepto: Visualidad (en el diseño)`, answer: `Capacidad de utilizar las imágenes como una forma propia de conocimiento y resolución de problemas.`, explanation: `La comunicación visual es una herramienta cognitiva, capaz de explicar realidades complejas más allá de lo decorativo.` },
-  { id: 35, question: `¿Qué disciplina del diseño ejemplifica la integración equilibrada entre imagen y texto?`, answer: `El infodiseño (diseño de información).`, explanation: `El diseño de información combina eficazmente lo visual y lo textual para hacer que los datos complejos sean comprensibles.` },
-  { id: 36, question: `¿Por qué es fundamental la teoría del diseño para la práctica profesional?`, answer: `Porque toda práctica se desarrolla frente a un escenario teórico y las profesiones sin base teórica se quedan atrás.`, explanation: `La teoría proporciona el marco crítico y los nuevos conocimientos necesarios para que una profesión evolucione.` },
-  { id: 37, question: `Según Bonsiepe el diseño debe ser un agente de transformación especialmente para los _____.`, answer: `dominados o menos favorecidos.`, explanation: `El diseño tiene una responsabilidad social de ayudar a quienes tienen menos poder en la sociedad.` },
-  { id: 38, question: `¿Qué término utiliza Bonsiepe para referirse al diseño centrado exclusivamente en el consumo y la imagen personal?`, answer: `Diseño de estilo de vida (Life Style).`, explanation: `Esta etiqueta describe al diseño que prioriza el estatus y la identidad superficial sobre las necesidades reales.` },
-  { id: 39, question: `¿Qué característica define a una profesión en una sociedad tecnológicamente dinámica según el autor?`, answer: `La capacidad de producir conocimientos propios.`, explanation: `Para seguir siendo relevante, una profesión debe generar su propia investigación y avances teóricos.` },
-  { id: 40, question: `El autor afirma que el diseño no es solo apariencia o emoción sino también _____; usabilidad y solución de problemas.`, answer: `usabilidad y solución de problemas.`, explanation: `La utilidad práctica de un diseño es tan importante como su impacto emocional o estético.` }
-];
-
-export default function App() {
-  const [gameState, setGameState] = useState('login'); // login, playing, finished
-  const [nickname, setNickname] = useState('');
-  const [cards, setCards] = useState(FLASHCARDS_DATA);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isFlipped, setIsFlipped] = useState(false);
-  const [score, setScore] = useState(0);
-  const [darkMode, setDarkMode] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
-
-  useEffect(() => {
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      setDarkMode(true);
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flashcards — Fundamentos del Diseño</title>
+  <meta name="description"
+    content="Tarjetas didácticas interactivas sobre Fundamentos del Diseño basadas en Gui Bonsiepe.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ===== CSS RESET & VARIABLES ===== */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
-  }, []);
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    if (/^\d{1,9}$/.test(nickname)) {
-      setGameState('playing');
-      setScore(0);
-      setCurrentIndex(0);
-      setIsFlipped(false);
-      setErrorMsg('');
-    } else {
-      setErrorMsg('El ID debe ser numérico (máx. 9 dígitos).');
+    :root {
+      --font: 'Inter', system-ui, sans-serif;
+      --radius: 20px;
+      --radius-sm: 12px;
+      --transition: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     }
-  };
 
-  const handleFlip = useCallback(() => {
-    setIsFlipped(prev => !prev);
-  }, []);
-
-  const handleNext = useCallback((isCorrect = false) => {
-    if (isFlipped && isCorrect) {
-      setScore(prev => prev + 1);
+    /* Dark theme (default) */
+    [data-theme="dark"] {
+      --bg-gradient-1: #0a1628;
+      --bg-gradient-2: #0d2b3e;
+      --bg-gradient-3: #0a3a2a;
+      --card-bg: rgba(45, 55, 72, 0.85);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), 0 0 80px rgba(59, 130, 246, 0.06);
+      --text-primary: #f0f4f8;
+      --text-secondary: rgba(203, 213, 225, 0.7);
+      --text-muted: rgba(148, 163, 184, 0.5);
+      --accent: #3b82f6;
+      --accent-glow: rgba(59, 130, 246, 0.25);
+      --nav-bg: rgba(30, 41, 59, 0.7);
+      --nav-hover: rgba(59, 130, 246, 0.2);
+      --progress-bg: rgba(255, 255, 255, 0.1);
+      --progress-fill: #3b82f6;
+      --overlay-bg: rgba(5, 10, 20, 0.85);
+      --input-bg: rgba(30, 41, 59, 0.8);
+      --input-border: rgba(59, 130, 246, 0.3);
+      --success-bg: rgba(16, 185, 129, 0.15);
+      --success-border: rgba(16, 185, 129, 0.4);
+      --success-text: #6ee7b7;
+      --star-color: rgba(250, 204, 21, 0.6);
+      --explanation-bg: rgba(59, 130, 246, 0.08);
+      --explanation-border: rgba(59, 130, 246, 0.2);
+      --toggle-bg: rgba(30, 41, 59, 0.7);
     }
-    
-    if (currentIndex < cards.length - 1) {
-      setCurrentIndex(prev => prev + 1);
-      setIsFlipped(false);
-    } else {
-      setGameState('finished');
+
+    /* Light theme */
+    [data-theme="light"] {
+      --bg-gradient-1: #e8edf5;
+      --bg-gradient-2: #dce8f0;
+      --bg-gradient-3: #d5ede3;
+      --card-bg: rgba(255, 255, 255, 0.92);
+      --card-border: rgba(0, 0, 0, 0.08);
+      --card-shadow: 0 25px 60px rgba(0, 0, 0, 0.1), 0 0 80px rgba(59, 130, 246, 0.05);
+      --text-primary: #1e293b;
+      --text-secondary: rgba(51, 65, 85, 0.7);
+      --text-muted: rgba(100, 116, 139, 0.5);
+      --accent: #2563eb;
+      --accent-glow: rgba(37, 99, 235, 0.15);
+      --nav-bg: rgba(255, 255, 255, 0.7);
+      --nav-hover: rgba(37, 99, 235, 0.12);
+      --progress-bg: rgba(0, 0, 0, 0.08);
+      --progress-fill: #2563eb;
+      --overlay-bg: rgba(241, 245, 249, 0.92);
+      --input-bg: rgba(255, 255, 255, 0.9);
+      --input-border: rgba(37, 99, 235, 0.3);
+      --success-bg: rgba(16, 185, 129, 0.1);
+      --success-border: rgba(16, 185, 129, 0.3);
+      --success-text: #059669;
+      --star-color: rgba(234, 179, 8, 0.7);
+      --explanation-bg: rgba(37, 99, 235, 0.06);
+      --explanation-border: rgba(37, 99, 235, 0.15);
+      --toggle-bg: rgba(255, 255, 255, 0.7);
     }
-  }, [currentIndex, cards.length, isFlipped]);
 
-  const handlePrev = useCallback(() => {
-    if (currentIndex > 0) {
-      setCurrentIndex(prev => prev - 1);
-      setIsFlipped(false);
+    /* ===== BODY ===== */
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
     }
-  }, [currentIndex]);
 
-  const reloadGame = () => {
-    setGameState('login');
-    setNickname('');
-    setCurrentIndex(0);
-    setScore(0);
-    setIsFlipped(false);
-  };
+    body {
+      font-family: var(--font);
+      background: linear-gradient(135deg, var(--bg-gradient-1), var(--bg-gradient-2), var(--bg-gradient-3));
+      color: var(--text-primary);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      transition: background var(--transition), color var(--transition);
+      position: relative;
+    }
 
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (gameState !== 'playing') return;
-      if (e.code === 'Space') { e.preventDefault(); handleFlip(); }
-      else if (e.code === 'ArrowRight') handleNext(false);
-      else if (e.code === 'ArrowLeft') handlePrev();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [gameState, handleFlip, handleNext, handlePrev]);
+    /* ===== THEME TOGGLE ===== */
+    .theme-toggle {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      z-index: 100;
+      background: var(--toggle-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      border-radius: 50px;
+      padding: 8px 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-secondary);
+      font-size: 14px;
+      font-family: var(--font);
+      transition: all var(--transition);
+    }
 
-  return (
-    <div className={`min-h-screen transition-colors duration-300 flex flex-col ${darkMode ? 'bg-gray-900 text-gray-100 dark' : 'bg-gray-50 text-gray-900'}`}>
-      <style dangerouslySetInnerHTML={{__html: `
-        .perspective-1000 { perspective: 1000px; }
-        .transform-style-3d { transform-style: preserve-3d; }
-        .backface-hidden { backface-visibility: hidden; }
-        .rotate-y-180 { transform: rotateY(180deg); }
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-      `}} />
+    .theme-toggle:hover {
+      border-color: var(--accent);
+      color: var(--text-primary);
+    }
 
-      <header className="p-6 flex justify-between items-center max-w-6xl mx-auto w-full">
-        <h1 className="text-xl font-bold tracking-tight opacity-80 uppercase">Estudio: Pensamiento de Bonsiepe</h1>
-        <button
-          onClick={() => setDarkMode(!darkMode)}
-          className={`p-3 rounded-full transition-all ${darkMode ? 'bg-gray-800 text-yellow-400' : 'bg-white shadow-sm text-gray-600'}`}
-        >
-          {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-        </button>
-      </header>
+    .theme-toggle svg {
+      width: 18px;
+      height: 18px;
+    }
 
-      <main className="flex-grow container mx-auto px-4 flex flex-col justify-center max-w-4xl">
-        {gameState === 'login' && (
-          <div className="flex flex-col items-center">
-            <div className={`p-10 rounded-3xl shadow-2xl w-full max-w-md ${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-100'}`}>
-              <h2 className="text-3xl font-bold mb-2 text-center">Identificación</h2>
-              <p className="text-center opacity-60 mb-8 text-sm">Acceso al corpus teórico de Gui Bonsiepe</p>
-              <form onSubmit={handleLogin} className="space-y-6">
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-widest mb-3 opacity-50">ID Estudiante / Nickname</label>
-                  <input
-                    type="text"
-                    maxLength="9"
-                    value={nickname}
-                    onChange={(e) => setNickname(e.target.value.replace(/\D/g, ''))}
-                    className={`w-full p-4 rounded-xl border focus:ring-4 focus:ring-blue-500/20 outline-none transition-all text-lg font-mono ${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'}`}
-                    placeholder="000000000"
-                    required
-                  />
-                </div>
-                {errorMsg && (
-                  <div className="flex items-center gap-2 text-red-500 text-xs bg-red-500/10 p-3 rounded-lg">
-                    <AlertCircle size={14} /> {errorMsg}
-                  </div>
-                )}
-                <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition-transform active:scale-95 shadow-lg">
-                  Comenzar Revisión
-                </button>
-              </form>
-            </div>
-          </div>
-        )}
+    /* ===== NICKNAME SCREEN ===== */
+    .screen {
+      display: none;
+      width: 100%;
+      height: 100%;
+    }
 
-        {gameState === 'playing' && (
-          <div className="w-full flex flex-col items-center">
-            <div className="w-full flex justify-between items-center mb-6 px-2 opacity-60 text-xs font-bold uppercase tracking-widest">
-              <span>Usuario: {nickname}</span>
-              <span>Ficha: {currentIndex + 1} / {cards.length}</span>
-            </div>
+    .screen.active {
+      display: flex;
+    }
 
-            <div className="w-full perspective-1000 relative min-h-[420px]">
-              <div 
-                className={`relative w-full aspect-[4/3] sm:aspect-video cursor-pointer transition-transform duration-700 transform-style-3d ${isFlipped ? 'rotate-y-180' : ''}`}
-                onClick={handleFlip}
-              >
-                {/* Frente */}
-                <div className={`absolute inset-0 backface-hidden flex flex-col items-center justify-center p-12 rounded-[2rem] shadow-2xl border ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
-                  <h3 className="text-xl sm:text-2xl font-medium text-center leading-relaxed">
-                    {cards[currentIndex]?.question}
-                  </h3>
-                  <div className="absolute bottom-8 flex flex-col items-center gap-2 opacity-30">
-                    <RefreshCw size={20} className="animate-pulse" />
-                    <span className="text-[10px] uppercase font-bold tracking-tighter">Click para revelar concepto</span>
-                  </div>
-                </div>
+    #nickname-screen {
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 28px;
+    }
 
-                {/* Reverso */}
-                <div className={`absolute inset-0 backface-hidden rotate-y-180 flex flex-col items-center justify-center p-10 rounded-[2rem] shadow-2xl border ${darkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-100'}`}>
-                  <div className="text-center overflow-y-auto w-full max-h-full px-4 scrollbar-hide py-4">
-                    <h4 className="text-2xl font-bold mb-6 text-blue-500">
-                      {cards[currentIndex]?.answer}
-                    </h4>
-                    {cards[currentIndex]?.explanation && (
-                      <p className="text-sm sm:text-base opacity-75 leading-relaxed italic border-t border-gray-500/20 pt-6">
-                        {cards[currentIndex].explanation}
-                      </p>
-                    )}
-                  </div>
-                  <div className="absolute bottom-8 flex gap-3">
-                    <button onClick={(e) => { e.stopPropagation(); handleNext(true); }} className="px-5 py-3 bg-green-500/10 text-green-500 rounded-2xl hover:bg-green-500 hover:text-white transition-all font-bold text-xs uppercase tracking-widest">
-                      Aprendido
-                    </button>
-                    <button onClick={(e) => { e.stopPropagation(); handleNext(false); }} className="px-5 py-3 bg-red-500/10 text-red-500 rounded-2xl hover:bg-red-500 hover:text-white transition-all font-bold text-xs uppercase tracking-widest">
-                      Repasar
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+    .nickname-box {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 48px 40px;
+      box-shadow: var(--card-shadow);
+      text-align: center;
+      max-width: 440px;
+      width: 90%;
+      animation: fadeScaleIn 0.6s ease;
+    }
 
-            <div className="flex items-center gap-12 mt-10">
-              <button onClick={handlePrev} disabled={currentIndex === 0} className={`p-4 rounded-full transition-all ${currentIndex === 0 ? 'opacity-10' : 'hover:bg-blue-500/10 hover:scale-110'}`}>
-                <ArrowLeft size={32} />
-              </button>
-              <button onClick={() => handleNext(false)} className="p-4 rounded-full transition-all hover:bg-blue-500/10 hover:scale-110">
-                <ArrowRight size={32} />
-              </button>
-            </div>
-          </div>
-        )}
+    .nickname-box h1 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+      background: linear-gradient(135deg, var(--accent), #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
 
-        {gameState === 'finished' && (
-          <div className="text-center p-12 bg-white dark:bg-gray-800 rounded-[3rem] shadow-2xl border border-gray-500/10">
-            <h2 className="text-4xl font-black mb-6">Fin de la Sesión</h2>
-            <div className="flex flex-col items-center gap-2 mb-10">
-              <div className="text-7xl font-mono font-bold text-blue-500">
-                {score} / {cards.length}
-              </div>
-              <p className="font-medium opacity-60">Conceptos dominados</p>
-            </div>
-            <button onClick={reloadGame} className="flex items-center gap-3 bg-gray-900 dark:bg-blue-600 text-white font-bold py-5 px-10 rounded-2xl hover:opacity-90 transition-all mx-auto">
-              <RotateCcw size={22} /> Reiniciar Estudio
-            </button>
-          </div>
-        )}
-      </main>
+    .nickname-box .subtitle {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: 28px;
+    }
 
-      {gameState === 'playing' && (
-        <footer className="p-6">
-          <div className="max-w-4xl mx-auto flex items-center gap-6">
-            <button onClick={reloadGame} className="p-3 bg-gray-500/10 rounded-2xl hover:bg-red-500/20 transition-colors">
-              <RotateCcw size={22} />
-            </button>
-            <div className="flex-grow h-2 bg-gray-300 dark:bg-gray-700 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-blue-500 transition-all duration-500"
-                style={{ width: `${((currentIndex + 1) / cards.length) * 100}%` }}
-              />
-            </div>
-          </div>
-        </footer>
-      )}
+    .nickname-box label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-align: left;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .nickname-box input {
+      width: 100%;
+      padding: 14px 18px;
+      font-size: 1.3rem;
+      font-family: var(--font);
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-align: center;
+      background: var(--input-bg);
+      border: 2px solid var(--input-border);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color var(--transition);
+    }
+
+    .nickname-box input:focus {
+      border-color: var(--accent);
+    }
+
+    .nickname-box input::placeholder {
+      color: var(--text-muted);
+      font-weight: 400;
+      letter-spacing: 0.05em;
+    }
+
+    .nickname-box .hint {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 8px;
+      text-align: left;
+    }
+
+    .btn-start {
+      margin-top: 24px;
+      width: 100%;
+      padding: 14px;
+      font-size: 1rem;
+      font-weight: 700;
+      font-family: var(--font);
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--accent);
+      color: #fff;
+      cursor: pointer;
+      transition: all var(--transition);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .btn-start:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .btn-start:not(:disabled):hover {
+      filter: brightness(1.15);
+      transform: translateY(-1px);
+    }
+
+    /* ===== GAME SCREEN ===== */
+    #game-screen {
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px;
+      height: 100%;
+    }
+
+    /* Top hint */
+    .top-hint {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      text-align: center;
+      padding: 8px 0 4px;
+      user-select: none;
+      flex-shrink: 0;
+    }
+
+    .top-hint kbd {
+      display: inline-block;
+      padding: 2px 7px;
+      font-size: 0.78rem;
+      font-family: var(--font);
+      background: var(--nav-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 5px;
+      margin: 0 2px;
+    }
+
+    /* Card area */
+    .card-area {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      width: 100%;
+      max-width: 900px;
+      min-height: 0;
+    }
+
+    /* Nav buttons */
+    .nav-btn {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: none;
+      background: var(--nav-bg);
+      backdrop-filter: blur(8px);
+      color: var(--accent);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition);
+      flex-shrink: 0;
+    }
+
+    .nav-btn:hover {
+      background: var(--nav-hover);
+      transform: scale(1.08);
+    }
+
+    .nav-btn:disabled {
+      opacity: 0.25;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .nav-btn svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    /* Flashcard */
+    .flashcard {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      box-shadow: var(--card-shadow);
+      padding: 44px 40px 36px;
+      max-width: 600px;
+      width: 100%;
+      min-height: 320px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      transition: box-shadow var(--transition);
+      animation: fadeScaleIn 0.4s ease;
+    }
+
+    .flashcard .card-ref {
+      position: absolute;
+      top: 16px;
+      left: 22px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .flashcard .question {
+      font-size: 1.55rem;
+      font-weight: 700;
+      line-height: 1.45;
+      color: var(--text-primary);
+      margin-bottom: 28px;
+      max-height: 260px;
+      overflow-y: auto;
+    }
+
+    .flashcard .reveal-btn {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      user-select: none;
+      transition: color var(--transition);
+      border: none;
+      background: none;
+      font-family: var(--font);
+      padding: 6px 12px;
+    }
+
+    .flashcard .reveal-btn:hover {
+      color: var(--accent);
+    }
+
+    /* Answer area */
+    .answer-area {
+      display: none;
+      width: 100%;
+      text-align: center;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .answer-area.visible {
+      display: block;
+    }
+
+    .answer-area .answer-text {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--success-text);
+      background: var(--success-bg);
+      border: 1px solid var(--success-border);
+      border-radius: var(--radius-sm);
+      padding: 16px 20px;
+      margin-bottom: 14px;
+      line-height: 1.5;
+    }
+
+    .answer-area .explanation-link {
+      font-size: 0.85rem;
+      color: var(--accent);
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      border: none;
+      background: none;
+      font-family: var(--font);
+      transition: opacity var(--transition);
+    }
+
+    .answer-area .explanation-link:hover {
+      opacity: 0.75;
+    }
+
+    .answer-area .explanation-text {
+      display: none;
+      margin-top: 12px;
+      font-size: 0.88rem;
+      line-height: 1.55;
+      color: var(--text-secondary);
+      background: var(--explanation-bg);
+      border: 1px solid var(--explanation-border);
+      border-radius: var(--radius-sm);
+      padding: 14px 18px;
+      text-align: left;
+      animation: fadeIn 0.35s ease;
+    }
+
+    .answer-area .explanation-text.visible {
+      display: block;
+    }
+
+    /* Bottom bar */
+    .bottom-bar {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      width: 100%;
+      max-width: 900px;
+      padding: 10px 0 6px;
+      flex-shrink: 0;
+    }
+
+    .reload-btn {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 6px;
+      display: flex;
+      align-items: center;
+      transition: color var(--transition), transform 0.5s ease;
+    }
+
+    .reload-btn:hover {
+      color: var(--accent);
+      transform: rotate(-180deg);
+    }
+
+    .reload-btn svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .progress-wrapper {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .progress-bar {
+      flex: 1;
+      height: 6px;
+      background: var(--progress-bg);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--progress-fill);
+      border-radius: 3px;
+      transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+      width: 0%;
+    }
+
+    .progress-text {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      font-weight: 500;
+    }
+
+    .star-icon {
+      color: var(--star-color);
+      display: flex;
+      align-items: center;
+      cursor: default;
+    }
+
+    .star-icon svg {
+      width: 28px;
+      height: 28px;
+    }
+
+    /* ===== END SCREEN ===== */
+    #end-screen {
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .end-box {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 52px 44px;
+      box-shadow: var(--card-shadow);
+      text-align: center;
+      max-width: 480px;
+      width: 90%;
+      animation: fadeScaleIn 0.6s ease;
+    }
+
+    .end-box .trophy {
+      font-size: 3.5rem;
+      margin-bottom: 16px;
+    }
+
+    .end-box h2 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .end-box .end-nickname {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+
+    .end-box .score-display {
+      font-size: 3.2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 6px;
+    }
+
+    .end-box .score-label {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+    }
+
+    .end-box .score-message {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      padding: 14px 0;
+      border-top: 1px solid var(--card-border);
+    }
+
+    .btn-replay {
+      margin-top: 24px;
+      padding: 14px 36px;
+      font-size: 1rem;
+      font-weight: 700;
+      font-family: var(--font);
+      border: 2px solid var(--accent);
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--accent);
+      cursor: pointer;
+      transition: all var(--transition);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .btn-replay:hover {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    /* ===== ANIMATIONS ===== */
+    @keyframes fadeScaleIn {
+      from {
+        opacity: 0;
+        transform: scale(0.94);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideLeft {
+      from {
+        opacity: 0;
+        transform: translateX(40px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes slideRight {
+      from {
+        opacity: 0;
+        transform: translateX(-40px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 640px) {
+      .flashcard {
+        padding: 32px 22px 28px;
+        min-height: 260px;
+      }
+
+      .flashcard .question {
+        font-size: 1.2rem;
+      }
+
+      .nav-btn {
+        width: 42px;
+        height: 42px;
+      }
+
+      .card-area {
+        gap: 10px;
+      }
+
+      .nickname-box {
+        padding: 36px 24px;
+      }
+
+      .top-hint {
+        font-size: 0.72rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Theme Toggle -->
+  <button class="theme-toggle" id="themeToggle" title="Cambiar tema">
+    <svg id="iconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+      stroke-linejoin="round">
+      <circle cx="12" cy="12" r="5" />
+      <line x1="12" y1="1" x2="12" y2="3" />
+      <line x1="12" y1="21" x2="12" y2="23" />
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+      <line x1="1" y1="12" x2="3" y2="12" />
+      <line x1="21" y1="12" x2="23" y2="12" />
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+    </svg>
+    <svg id="iconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+      stroke-linejoin="round" style="display:none;">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+    </svg>
+    <span id="themeLabel">Modo claro</span>
+  </button>
+
+  <!-- ===== NICKNAME SCREEN ===== -->
+  <div class="screen active" id="nickname-screen">
+    <div class="nickname-box">
+      <h1>Fundamentos del Diseño</h1>
+      <p class="subtitle">Tarjetas didácticas · Gui Bonsiepe</p>
+      <label for="nicknameInput">Tu nickname</label>
+      <input type="text" id="nicknameInput" placeholder="123456789" maxlength="9" inputmode="numeric"
+        autocomplete="off">
+      <p class="hint">Ingresa un número de máximo 9 dígitos</p>
+      <button class="btn-start" id="btnStart" disabled>Comenzar</button>
     </div>
-  );
-}
+  </div>
+
+  <!-- ===== GAME SCREEN ===== -->
+  <div class="screen" id="game-screen">
+    <p class="top-hint">Presiona <kbd>Espacio</kbd> para voltear, <kbd>←</kbd> / <kbd>→</kbd> para navegar</p>
+
+    <div class="card-area">
+      <!-- Prev -->
+      <button class="nav-btn" id="btnPrev" title="Anterior (←)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+          stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+      </button>
+
+      <!-- Card -->
+      <div class="flashcard" id="flashcard">
+        <span class="card-ref" id="cardRef"></span>
+        <p class="question" id="questionText"></p>
+        <button class="reveal-btn" id="revealBtn">Ver respuesta</button>
+        <div class="answer-area" id="answerArea">
+          <div class="answer-text" id="answerText"></div>
+          <button class="explanation-link" id="explanationLink">Explicación</button>
+          <div class="explanation-text" id="explanationText"></div>
+        </div>
+      </div>
+
+      <!-- Next -->
+      <button class="nav-btn" id="btnNext" title="Siguiente (→)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+          stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Bottom bar -->
+    <div class="bottom-bar">
+      <button class="reload-btn" id="btnReload" title="Reiniciar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10" />
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+        </svg>
+      </button>
+      <div class="progress-wrapper">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <span class="progress-text" id="progressText">1 / 40 tarjetas</span>
+      </div>
+      <div class="star-icon" title="Puntuación">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.27 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z" />
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== END SCREEN ===== -->
+  <div class="screen" id="end-screen">
+    <div class="end-box">
+      <div class="trophy">🏆</div>
+      <h2>¡Juego terminado!</h2>
+      <p class="end-nickname" id="endNickname"></p>
+      <div class="score-display" id="scoreDisplay"></div>
+      <p class="score-label" id="scoreLabel"></p>
+      <p class="score-message" id="scoreMessage"></p>
+      <button class="btn-replay" id="btnReplay">Jugar de nuevo</button>
+    </div>
+  </div>
+
+  <script>
+    // ===== FLASHCARD DATA =====
+    const FLASHCARDS = [
+      { ref: 1, pregunta: "¿Cuál es el significado real del diseño según Gui Bonsiepe?", respuesta: "Ser un solucionador inteligente de problemas.", explicacion: "Bonsiepe busca rescatar al diseño de su reducción a un mero espectáculo mediático, devolviéndole su propósito central de resolver necesidades funcionales." },
+      { ref: 2, pregunta: "Bonsiepe afirma que el diseño actual ha dejado de ser un solucionador de problemas para convertirse en un _____ _____.", respuesta: "evento mediático.", explicacion: "Se critica que hoy el diseño se use más como una herramienta de marketing y exhibición que como una disciplina de intervención crítica." },
+      { ref: 3, pregunta: "¿En qué se basa el discurso proyectual contemporáneo según la crítica de Bonsiepe?", respuesta: "En el uso de palabras de moda o tendencias en lugar de cuestiones críticas.", explicacion: "El discurso ha pasado de un análisis profundo a la adopción de términos superficiales que no cuestionan la realidad social." },
+      { ref: 4, pregunta: "¿Qué función cumplen las revistas de diseño en el panorama actual según el autor?", respuesta: "Funcionan como cajas de resonancia para el diseño como espectáculo.", explicacion: "En lugar de fomentar el debate crítico, estas publicaciones suelen amplificar los aspectos estéticos y espectaculares del diseño." },
+      { ref: 5, pregunta: "Según Bonsiepe, el diseño no debe limitarse a lo estético sino que debe aspirar a generar _____.", respuesta: "calidad de vida.", explicacion: "El diseño tiene el potencial de mejorar cómo vivimos, y no debe reducirse a hacer cosas \"bonitas\"." },
+      { ref: 6, pregunta: "¿En qué campo del diseño se destaca especialmente la tradición brasileña según Bonsiepe?", respuesta: "En el diseño gráfico.", explicacion: "Brasil tiene una rica historia de innovación en el diseño gráfico, influenciada por movimientos artísticos y culturales locales." },
+      { ref: 7, pregunta: "¿Qué papel cumplió la Hochschule für Gestaltung de Ulm según el texto?", respuesta: "Fue un centro de innovación y formación que influenció el diseño moderno globalmente.", explicacion: "La escuela de Ulm fue pionera en integrar la ciencia, la tecnología y las humanidades en la enseñanza del diseño." },
+      { ref: 8, pregunta: "¿Qué concepto propone Bonsiepe como alternativo al enfoque puramente mercantil del diseño?", respuesta: "El diseño como herramienta de emancipación social.", explicacion: "Frente a la visión del diseño como motor de consumo, Bonsiepe aboga por usarlo para el bienestar colectivo y la autonomía." },
+      { ref: 9, pregunta: "¿Cómo considera Bonsiepe que el diseño puede contribuir a la democracia?", respuesta: "Facilitando la participación ciudadana y el acceso equitativo a recursos y herramientas.", explicacion: "El diseño democrático busca que las soluciones lleguen a todos, no solo a quienes pueden pagar por ellas." },
+      { ref: 10, pregunta: "¿Qué relación establece Bonsiepe entre el diseño y la periferia (países en desarrollo)?", respuesta: "Propone que el diseño en la periferia debe ser una herramienta de desarrollo autónomo que no copie modelos del centro.", explicacion: "Los países periféricos deben usar el diseño para resolver sus propios problemas, creando soluciones originales y relevantes." },
+      { ref: 11, pregunta: "¿A qué ámbito pertenece principalmente el libro de Bonsiepe?", respuesta: "Al ámbito de la teoría del diseño y su relación con la sociedad y la cultura.", explicacion: "El libro es un ensayo crítico que analiza el rol del diseño más allá de la práctica profesional, vinculándolo a temas sociales." },
+      { ref: 12, pregunta: "¿Cómo define Bonsiepe el concepto de democracia en el contexto del diseño?", respuesta: "Como la creación de un espacio de autodeterminación para un proyecto propio.", explicacion: "Diseñar democráticamente significa dar a las personas las herramientas para que decidan y den forma a sus propias vidas." },
+      { ref: 13, pregunta: "Terminología de Kant: ¿Cómo se denomina la sujeción del individuo a la voluntad de terceros o de un orden impuesto?", respuesta: "Heteronomía.", explicacion: "El diseño debe aspirar a reducir este estado de dependencia, donde el individuo es controlado por fuerzas externas." },
+      { ref: 14, pregunta: "¿Cuál es el objetivo de Bonsiepe al adherirse a un concepto sustancial de democracia?", respuesta: "La reducción de la heteronomía.", explicacion: "Una democracia sustantiva empodera al ciudadano, haciéndolo menos dependiente de órdenes impuestos desde fuera." },
+      { ref: 15, pregunta: "¿Qué postura crítica asume Bonsiepe frente a las \"grandes narrativas\" mencionadas por Fredric Jameson?", respuesta: "Rechaza el conformismo y cree que es necesario creer en la posibilidad de un futuro mejor.", explicacion: "El autor se opone al derrotismo, defendiendo que el diseñador tiene un rol activo y esperanzador en el cambio social." },
+      { ref: 16, pregunta: "Según Edward Said ¿qué ejercicio define al humanismo?", respuesta: "El ejercicio de competencias lingüísticas para comprender y manejar productos del lenguaje en la historia.", explicacion: "Esta definición resalta la importancia de entender el mundo mediante la interpretación crítica de sus productos y mensajes." },
+      { ref: 17, pregunta: "Concepto: Humanismo Proyectual", respuesta: "Ejercicio de capacidades proyectuales para interpretar necesidades sociales y elaborar propuestas emancipadoras.", explicacion: "Es la aplicación ética del diseño para ayudar a liberar y empoderar a grupos sociales marginados." },
+      { ref: 18, pregunta: "¿Qué tipo de artefactos busca crear el humanismo proyectual según Bonsiepe?", respuesta: "Artefactos instrumentales y artefactos semióticos.", explicacion: "Se enfoca tanto en herramientas funcionales (instrumentales) como en comunicaciones con significado (semióticas) que ayuden a la emancipación." },
+      { ref: 19, pregunta: "¿Cuál es la finalidad social del humanismo proyectual?", respuesta: "Reducir la dominación y la exclusión social.", explicacion: "Su objetivo final es usar el diseño como una herramienta de justicia contra la desigualdad y el control social." },
+      { ref: 20, pregunta: "¿Por qué Kenneth Galbraith critica el uso del término \"mercado\"?", respuesta: "Porque se utiliza para evitar las connotaciones negativas asociadas al término capitalismo.", explicacion: "El término se usa a menudo como una máscara neutral para ocultar las dinámicas de poder del sistema capitalista." },
+      { ref: 21, pregunta: "¿Qué papel juegan las grandes corporaciones respecto al diseño según el texto?", respuesta: "Utilizan el diseño como herramienta para expandir y mantener su poder.", explicacion: "Las empresas aprovechan el diseño para dominar mercados e influir en el comportamiento del consumidor en su beneficio." },
+      { ref: 22, pregunta: "¿Cuál es el punto de contacto entre la manipulación y el diseño según Bonsiepe?", respuesta: "La producción de la apariencia.", explicacion: "El diseño puede usarse de forma engañosa para que las cosas parezcan mejores o diferentes de lo que realmente son." },
+      { ref: 23, pregunta: "¿Qué beneficio atribuye el autor a la industrialización en el contexto del consumo?", respuesta: "La democratización del consumo mediante el acceso a tecnologías y productos útiles.", explicacion: "La industria permite que herramientas y bienes antes exclusivos lleguen a la mayoría, mejorando la calidad de vida general." },
+      { ref: 24, pregunta: "Según el texto ¿qué elementos no deben dominar completamente un proyecto de diseño en detrimento de la utilidad?", respuesta: "Los aspectos simbólicos y comunicativos.", explicacion: "Aunque el significado es importante, no debe eclipsar la función real y la utilidad del objeto diseñado." },
+      { ref: 25, pregunta: "¿Qué riesgo menciona Bonsiepe al actuar bajo una normativa única o autoritaria en el diseño?", respuesta: "El riesgo de convertirse en un \"Gran Inquisidor\" que impone reglas.", explicacion: "Los diseñadores deben evitar el dogmatismo y reconocer la diversidad de necesidades y puntos de vista." },
+      { ref: 26, pregunta: "En el contexto de una ciudad \"convivial\" ¿cómo define Bonsiepe los espacios?", respuesta: "Como lugares indeterminados donde se median intereses legítimos diferentes o contrarios.", explicacion: "Los espacios urbanos deben facilitar la negociación pacífica de las distintas visiones sociales." },
+      { ref: 27, pregunta: "Virtud del diseño: Ligereza", respuesta: "Considerar el flujo de materiales y energía para evitar el exceso o la superficialidad.", explicacion: "Este principio aboga por la eficiencia y sostenibilidad, evitando el desperdicio de recursos en decoraciones innecesarias." },
+      { ref: 28, pregunta: "¿Qué riesgo corre el diseño cuando se reduce exclusivamente a lo efímero como las joyas o muebles de autor?", respuesta: "Perder su dimensión crítica y ética vinculada a las preocupaciones básicas de la sociedad.", explicacion: "Centrarse solo en el lujo o el ego artístico desconecta al diseño de las necesidades reales de la mayoría." },
+      { ref: 29, pregunta: "Bonsiepe defiende que el diseñador no debe ser solo un técnico sino también un _____ _____.", respuesta: "pensador crítico.", explicacion: "La habilidad técnica no basta; el diseñador debe entender el impacto social y político de su trabajo." },
+      { ref: 30, pregunta: "¿Qué significa \"diseñar\" en el contexto de la intervención en la realidad según Bonsiepe?", respuesta: "Tener la predisposición a cambiar la realidad sin distanciarse de ella.", explicacion: "Diseñar es un acto de compromiso práctico para mejorar el mundo a través de la intervención directa." },
+      { ref: 31, pregunta: "¿Qué debe defender enérgicamente cualquier sociedad que se defina como democrática?", respuesta: "Los intereses públicos frente a los intereses privados desenfrenados.", explicacion: "La verdadera democracia protege los bienes comunes y el bienestar social por encima del lucro privado desmedido." },
+      { ref: 32, pregunta: "Virtud del diseño: Alteridad", respuesta: "El reconocimiento y respeto por las diferencias culturales frente a la homogeneización de la globalización.", explicacion: "El diseño debe celebrar la identidad local y la diversidad en lugar de imponer un estilo global único." },
+      { ref: 33, pregunta: "¿Cuál es la relación entre la alteridad y la autonomía de un grupo social?", respuesta: "Permite que cada grupo decida su propio camino sin imposiciones externas.", explicacion: "Respetar la diferencia empodera a las comunidades para que definan su propio desarrollo e identidad." },
+      { ref: 34, pregunta: "Concepto: Visualidad (en el diseño)", respuesta: "Capacidad de utilizar las imágenes como una forma propia de conocimiento y resolución de problemas.", explicacion: "La comunicación visual es una herramienta cognitiva, capaz de explicar realidades complejas más allá de lo decorativo." },
+      { ref: 35, pregunta: "¿Qué disciplina del diseño ejemplifica la integración equilibrada entre imagen y texto?", respuesta: "El infodiseño (diseño de información).", explicacion: "El diseño de información combina eficazmente lo visual y lo textual para hacer que los datos complejos sean comprensibles." },
+      { ref: 36, pregunta: "¿Por qué es fundamental la teoría del diseño para la práctica profesional?", respuesta: "Porque toda práctica se desarrolla frente a un escenario teórico y las profesiones sin base teórica se quedan atrás.", explicacion: "La teoría proporciona el marco crítico y los nuevos conocimientos necesarios para que una profesión evolucione." },
+      { ref: 37, pregunta: "Según Bonsiepe el diseño debe ser un agente de transformación especialmente para los _____.", respuesta: "dominados o menos favorecidos.", explicacion: "El diseño tiene una responsabilidad social de ayudar a quienes tienen menos poder en la sociedad." },
+      { ref: 38, pregunta: "¿Qué término utiliza Bonsiepe para referirse al diseño centrado exclusivamente en el consumo y la imagen personal?", respuesta: "Diseño de estilo de vida (Life Style).", explicacion: "Esta etiqueta describe al diseño que prioriza el estatus y la identidad superficial sobre las necesidades reales." },
+      { ref: 39, pregunta: "¿Qué característica define a una profesión en una sociedad tecnológicamente dinámica según el autor?", respuesta: "La capacidad de producir conocimientos propios.", explicacion: "Para seguir siendo relevante, una profesión debe generar su propia investigación y avances teóricos." },
+      { ref: 40, pregunta: "El autor afirma que el diseño no es solo apariencia o emoción sino también _____.", respuesta: "usabilidad y solución de problemas.", explicacion: "La utilidad práctica de un diseño es tan importante como su impacto emocional o estético." }
+    ];
+
+    // ===== STATE =====
+    let nickname = '';
+    let currentIndex = 0;
+    let revealed = new Set(); // indices where answer was revealed
+    let explanationOpen = false;
+
+    // ===== DOM REFS =====
+    const $ = id => document.getElementById(id);
+    const nicknameScreen = $('nickname-screen');
+    const gameScreen = $('game-screen');
+    const endScreen = $('end-screen');
+    const nicknameInput = $('nicknameInput');
+    const btnStart = $('btnStart');
+    const btnPrev = $('btnPrev');
+    const btnNext = $('btnNext');
+    const flashcard = $('flashcard');
+    const cardRef = $('cardRef');
+    const questionText = $('questionText');
+    const revealBtn = $('revealBtn');
+    const answerArea = $('answerArea');
+    const answerText = $('answerText');
+    const explanationLink = $('explanationLink');
+    const explanationText = $('explanationText');
+    const progressFill = $('progressFill');
+    const progressText = $('progressText');
+    const btnReload = $('btnReload');
+    const themeToggle = $('themeToggle');
+    const iconSun = $('iconSun');
+    const iconMoon = $('iconMoon');
+
+    // ===== THEME =====
+    function initTheme() {
+      const saved = localStorage.getItem('flashcards-theme');
+      if (saved) document.documentElement.setAttribute('data-theme', saved);
+      updateThemeIcon();
+    }
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('flashcards-theme', next);
+      updateThemeIcon();
+    }
+    function updateThemeIcon() {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      iconSun.style.display = isDark ? 'block' : 'none';
+      iconMoon.style.display = isDark ? 'none' : 'block';
+      document.getElementById('themeLabel').textContent = isDark ? 'Modo claro' : 'Modo oscuro';
+    }
+    themeToggle.addEventListener('click', toggleTheme);
+    initTheme();
+
+    // ===== SCREENS =====
+    function showScreen(screen) {
+      [nicknameScreen, gameScreen, endScreen].forEach(s => s.classList.remove('active'));
+      screen.classList.add('active');
+    }
+
+    // ===== NICKNAME =====
+    nicknameInput.addEventListener('input', () => {
+      const val = nicknameInput.value.replace(/\D/g, '').slice(0, 9);
+      nicknameInput.value = val;
+      btnStart.disabled = val.length === 0;
+    });
+    nicknameInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !btnStart.disabled) startGame();
+    });
+    btnStart.addEventListener('click', startGame);
+
+    function startGame() {
+      nickname = nicknameInput.value;
+      currentIndex = 0;
+      revealed = new Set();
+      explanationOpen = false;
+      showScreen(gameScreen);
+      renderCard();
+    }
+
+    // ===== CARD RENDERING =====
+    function renderCard(direction) {
+      const card = FLASHCARDS[currentIndex];
+      cardRef.textContent = `#${card.ref}`;
+      questionText.textContent = card.pregunta;
+      answerText.textContent = card.respuesta;
+      explanationText.textContent = card.explicacion;
+
+      // Reset state
+      answerArea.classList.remove('visible');
+      explanationText.classList.remove('visible');
+      explanationLink.textContent = 'Explicación';
+      revealBtn.style.display = 'block';
+      explanationOpen = false;
+
+      // If this card was already revealed, show answer
+      if (revealed.has(currentIndex)) {
+        showAnswer();
+      }
+
+      // Nav buttons
+      btnPrev.disabled = currentIndex === 0;
+      // btnNext always enabled to allow finishing
+
+      // Progress
+      const pct = ((currentIndex + 1) / FLASHCARDS.length) * 100;
+      progressFill.style.width = pct + '%';
+      progressText.textContent = `${currentIndex + 1} / ${FLASHCARDS.length} tarjetas`;
+
+      // Animation
+      if (direction) {
+        flashcard.style.animation = 'none';
+        flashcard.offsetHeight; // reflow
+        flashcard.style.animation = direction === 'left' ? 'slideLeft 0.35s ease' : 'slideRight 0.35s ease';
+      }
+    }
+
+    function showAnswer() {
+      revealed.add(currentIndex);
+      revealBtn.style.display = 'none';
+      answerArea.classList.add('visible');
+    }
+
+    function toggleExplanation() {
+      explanationOpen = !explanationOpen;
+      explanationText.classList.toggle('visible', explanationOpen);
+      explanationLink.textContent = explanationOpen ? 'Ocultar explicación' : 'Explicación';
+    }
+
+    // ===== NAVIGATION =====
+    function goNext() {
+      if (currentIndex < FLASHCARDS.length - 1) {
+        currentIndex++;
+        renderCard('left');
+      } else {
+        endGame();
+      }
+    }
+    function goPrev() {
+      if (currentIndex > 0) {
+        currentIndex--;
+        renderCard('right');
+      }
+    }
+
+    btnNext.addEventListener('click', goNext);
+    btnPrev.addEventListener('click', goPrev);
+    revealBtn.addEventListener('click', showAnswer);
+    explanationLink.addEventListener('click', toggleExplanation);
+
+    // ===== KEYBOARD =====
+    document.addEventListener('keydown', e => {
+      // Only handle keys when game screen is active
+      if (!gameScreen.classList.contains('active')) return;
+
+      if (e.key === 'ArrowRight') { e.preventDefault(); goNext(); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); goPrev(); }
+      else if (e.key === ' ') {
+        e.preventDefault();
+        if (!answerArea.classList.contains('visible')) {
+          showAnswer();
+        }
+      }
+    });
+
+    // ===== RELOAD =====
+    btnReload.addEventListener('click', () => {
+      if (confirm('¿Reiniciar el juego? Se perderá tu progreso.')) {
+        currentIndex = 0;
+        revealed = new Set();
+        renderCard();
+      }
+    });
+
+    // ===== END GAME =====
+    function endGame() {
+      const total = FLASHCARDS.length;
+      const notRevealed = total - revealed.size;
+      const pct = Math.round((notRevealed / total) * 100);
+
+      $('endNickname').textContent = `Jugador: ${nickname}`;
+      $('scoreDisplay').textContent = `${notRevealed} / ${total}`;
+      $('scoreLabel').textContent = `${pct}% de tarjetas respondidas sin ver la respuesta`;
+
+      let msg = '';
+      if (pct === 100) msg = '¡Perfecto! 🌟 Dominas completamente el tema.';
+      else if (pct >= 80) msg = '¡Excelente! 🎯 Tienes un dominio muy alto.';
+      else if (pct >= 60) msg = '¡Bien! 📚 Vas por buen camino, sigue estudiando.';
+      else if (pct >= 40) msg = 'Regular. 💡 Necesitas repasar algunos conceptos.';
+      else msg = '¡No te rindas! 🔄 Repasa el material y vuelve a intentarlo.';
+
+      $('scoreMessage').textContent = msg;
+      showScreen(endScreen);
+    }
+
+    // ===== REPLAY =====
+    $('btnReplay').addEventListener('click', () => {
+      nicknameInput.value = nickname;
+      btnStart.disabled = false;
+      showScreen(nicknameScreen);
+    });
+  </script>
+</body>
+
+</html>
