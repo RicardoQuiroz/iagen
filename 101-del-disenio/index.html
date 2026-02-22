@@ -1,48 +1,48 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Moon, Sun, RotateCcw, ArrowRight, ArrowLeft, RefreshCw, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
 
-// Datos integrados directamente para evitar errores de carga de archivos (CORS/URL)
+// Datos corregidos con backticks para permitir comillas internas sin errores de sintaxis
 const FLASHCARDS_DATA = [
-{ id: 1, question: "¿Cuál es el significado real del diseño según Gui Bonsiepe?", answer: "Ser un solucionador inteligente de problemas.", explanation: "Bonsiepe busca rescatar al diseño de su reducción a un mero espectáculo mediático, devolviéndole su propósito central de resolver necesidades funcionales." },
-{ id: 2, question: "Bonsiepe afirma que el diseño actual ha dejado de ser un solucionador de problemas para convertirse en un _____ _____.", answer: "evento mediático.", explanation: "Se critica que hoy el diseño se use más como una herramienta de marketing y exhibición que como una disciplina de intervención crítica." },
-{ id: 3, question: "¿En qué se basa el discurso proyectual contemporáneo según la crítica de Bonsiepe?", answer: "En el uso de palabras de moda o tendencias en lugar de cuestiones críticas.", explanation: "El discurso ha pasado de un análisis profundo a la adopción de términos superficiales que no cuestionan la realidad social." },
-{ id: 4, question: "¿Qué función cumplen las revistas de diseño en el panorama actual según el autor?", answer: "Funcionan como cajas de resonancia para el diseño como espectáculo.", explanation: "En lugar de fomentar el debate crítico, estas publicaciones suelen amplificar los aspectos estéticos y espectaculares del diseño." },
-{ id: 5, question: "¿Cuál era el objetivo principal de los protagonistas del movimiento de la "Buena Forma"?", answer: "Perseguían fines sociopedagógicos y funcionales.", explanation: "Este movimiento histórico buscaba educar a la sociedad y mejorar la calidad de vida a través de objetos útiles y bien diseñados." },
-{ id: 6, question: "¿Cuál es el objetivo exclusivo de los modernos "Life Style Centers" según Bonsiepe?", answer: "Perseguir fines comerciales y de marketing.", explanation: "A diferencia de los movimientos históricos, los centros de "estilo de vida" actuales se enfocan únicamente en la venta y la imagen de marca." },
-{ id: 7, question: "¿Cómo define Bonsiepe la relación ideal entre el diseño y la ciencia?", answer: "Como una relación entre la complejidad temática y la metodología científica.", explanation: "El diseño debe emplear métodos científicos cuando la complejidad del problema (técnica o ambiental) supera la mera intuición." },
-{ id: 8, question: "Según Bonsiepe ¿cuándo debe el diseño buscar el conocimiento científico?", answer: "Técnicamente cuando la temática del proyecto lo exige.", explanation: "No todo proyecto requiere ciencia, pero aquellos con implicaciones técnicas rigurosas demandan conocimientos especializados." },
-{ id: 9, question: "Mencione un ejemplo de Bonsiepe donde el conocimiento científico es fundamental para el diseño.", answer: "El diseño de un envase de leche para minimizar el impacto medioambiental.", explanation: "Resolver problemas ecológicos requiere análisis de materiales y ciclos de vida, lo cual es una tarea científica." },
-{ id: 10, question: "¿Qué doctrina económica prioriza la libre actuación del mercado y la mínima intervención del Estado según el texto?", answer: "El neoliberalismo.", explanation: "Bonsiepe cuestiona cómo este modelo económico ha empujado al diseño a servir casi exclusivamente a los intereses del mercado." },
-{ id: 11, question: "Bonsiepe propone rescatar la democracia como un concepto político y social alejándola de los puros _____ _____.", answer: "intereses económicos.", explanation: "La democracia debe ser un espacio de bienestar social y participación, no solo un mecanismo de transacciones mercantiles." },
-{ id: 12, question: "¿Cómo define Bonsiepe el concepto de democracia en el contexto del diseño?", answer: "Como la creación de un espacio de autodeterminación para un proyecto propio.", explanation: "Diseñar democráticamente significa dar a las personas las herramientas para que decidan y den forma a sus propias vidas." },
-{ id: 13, question: "Terminología de Kant: ¿Cómo se denomina la sujeción del individuo a la voluntad de terceros o de un orden impuesto?", answer: "Heteronomía.", explanation: "El diseño debe aspirar a reducir este estado de dependencia, donde el individuo es controlado por fuerzas externas." },
-{ id: 14, question: "¿Cuál es el objetivo de Bonsiepe al adherirse a un concepto sustancial de democracia?", answer: "La reducción de la heteronomía.", explanation: "Una democracia sustantiva empodera al ciudadano, haciéndolo menos dependiente de órdenes impuestos desde fuera." },
-{ id: 15, question: "¿Qué postura crítica asume Bonsiepe frente a las "grandes narrativas" mencionadas por Fredric Jameson?", answer: "Rechaza el conformismo y cree que es necesario creer en la posibilidad de un futuro mejor.", explanation: "El autor se opone al derrotismo, defendiendo que el diseñador tiene un rol activo y esperanzador en el cambio social." },
-{ id: 16, question: "Según Edward Said ¿qué ejercicio define al humanismo?", answer: "El ejercicio de competencias lingüísticas para comprender y manejar productos del lenguaje en la historia.", explanation: "Esta definición resalta la importancia de entender el mundo mediante la interpretación crítica de sus productos y mensajes." },
-{ id: 17, question: "Concepto: Humanismo Proyectual", answer: "Ejercicio de capacidades proyectuales para interpretar necesidades sociales y elaborar propuestas emancipadoras.", explanation: "Es la aplicación ética del diseño para ayudar a liberar y empoderar a grupos sociales marginados." },
-{ id: 18, question: "¿Qué tipo de artefactos busca crear el humanismo proyectual según Bonsiepe?", answer: "Artefactos instrumentales y artefactos semióticos.", explanation: "Se enfoca tanto en herramientas funcionales (instrumentales) como en comunicaciones con significado (semióticas) que ayuden a la emancipación." },
-{ id: 19, question: "¿Cuál es la finalidad social del humanismo proyectual?", answer: "Reducir la dominación y la exclusión social.", explanation: "Su objetivo final es usar el diseño como una herramienta de justicia contra la desigualdad y el control social." },
-{ id: 20, question: "¿Por qué Kenneth Galbraith critica el uso del término "mercado"?", answer: "Porque se utiliza para evitar las connotaciones negativas asociadas al término capitalismo.", explanation: "El término se usa a menudo como una máscara neutral para ocultar las dinámicas de poder del sistema capitalista." },
-{ id: 21, question: "¿Qué papel juegan las grandes corporaciones respecto al diseño según el texto?", answer: "Utilizan el diseño como herramienta para expandir y mantener su poder.", explanation: "Las empresas aprovechan el diseño para dominar mercados e influir en el comportamiento del consumidor en su beneficio." },
-{ id: 22, question: "¿Cuál es el punto de contacto entre la manipulación y el diseño según Bonsiepe?", answer: "La producción de la apariencia.", explanation: "El diseño puede usarse de forma engañosa para que las cosas parezcan mejores o diferentes de lo que realmente son." },
-{ id: 23, question: "¿Qué beneficio atribuye el autor a la industrialización en el contexto del consumo?", answer: "La democratización del consumo mediante el acceso a tecnologías y productos útiles.", explanation: "La industria permite que herramientas y bienes antes exclusivos lleguen a la mayoría, mejorando la calidad de vida general." },
-{ id: 24, question: "Según el texto ¿qué elementos no deben dominar completamente un proyecto de diseño en detrimento de la utilidad?", answer: "Los aspectos simbólicos y comunicativos.", explanation: "Aunque el significado es importante, no debe eclipsar la función real y la utilidad del objeto diseñado." },
-{ id: 25, question: "¿Qué riesgo menciona Bonsiepe al actuar bajo una normativa única o autoritaria en el diseño?", answer: "El riesgo de convertirse en un "Gran Inquisidor" que impone reglas.", explanation: "Los diseñadores deben evitar el dogmatismo y reconocer la diversidad de necesidades y puntos de vista." },
-{ id: 26, question: "En el contexto de una ciudad "convivial" ¿cómo define Bonsiepe los espacios?", answer: "Como lugares indeterminados donde se median intereses legítimos diferentes o contrarios.", explanation: "Los espacios urbanos deben facilitar la negociación pacífica de las distintas visiones sociales." },
-{ id: 27, question: "Virtud del diseño: Ligereza", answer: "Considerar el flujo de materiales y energía para evitar el exceso o la superficialidad.", explanation: "Este principio aboga por la eficiencia y sostenibilidad, evitando el desperdicio de recursos en decoraciones innecesarias." },
-{ id: 28, question: "¿Qué riesgo corre el diseño cuando se reduce exclusivamente a lo efímero como las joyas o muebles de autor?", answer: "Perder su dimensión crítica y ética vinculada a las preocupaciones básicas de la sociedad.", explanation: "Centrarse solo en el lujo o el ego artístico desconecta al diseño de las necesidades reales de la mayoría." },
-{ id: 29, question: "Bonsiepe defiende que el diseñador no debe ser solo un técnico sino también un _____ _____.", answer: "pensador crítico.", explanation: "La habilidad técnica no basta; el diseñador debe entender el impacto social y político de su trabajo." },
-{ id: 30, question: "¿Qué significa "diseñar" en el contexto de la intervención en la realidad según Bonsiepe?", answer: "Tener la predisposición a cambiar la realidad sin distanciarse de ella.", explanation: "Diseñar es un acto de compromiso práctico para mejorar el mundo a través de la intervención directa." },
-{ id: 31, question: "¿Qué debe defender enérgicamente cualquier sociedad que se defina como democrática?", answer: "Los intereses públicos frente a los intereses privados desenfrenados.", explanation: "La verdadera democracia protege los bienes comunes y el bienestar social por encima del lucro privado desmedido." },
-{ id: 32, question: "Virtud del diseño: Alteridad", answer: "El reconocimiento y respeto por las diferencias culturales frente a la homogeneización de la globalización.", explanation: "El diseño debe celebrar la identidad local y la diversidad en lugar de imponer un estilo global único." },
-{ id: 33, question: "¿Cuál es la relación entre la alteridad y la autonomía de un grupo social?", answer: "Permite que cada grupo decida su propio camino sin imposiciones externas.", explanation: "Respetar la diferencia empodera a las comunidades para que definan su propio desarrollo e identidad." },
-{ id: 34, question: "Concepto: Visualidad (en el diseño)", answer: "Capacidad de utilizar las imágenes como una forma propia de conocimiento y resolución de problemas.", explanation: "La comunicación visual es una herramienta cognitiva, capaz de explicar realidades complejas más allá de lo decorativo." },
-{ id: 35, question: "¿Qué disciplina del diseño ejemplifica la integración equilibrada entre imagen y texto?", answer: "El infodiseño (diseño de información).", explanation: "El diseño de información combina eficazmente lo visual y lo textual para hacer que los datos complejos sean comprensibles." },
-{ id: 36, question: "¿Por qué es fundamental la teoría del diseño para la práctica profesional?", answer: "Porque toda práctica se desarrolla frente a un escenario teórico y las profesiones sin base teórica se quedan atrás.", explanation: "La teoría proporciona el marco crítico y los nuevos conocimientos necesarios para que una profesión evolucione." },
-{ id: 37, question: "Según Bonsiepe el diseño debe ser un agente de transformación especialmente para los _____.", answer: "dominados o menos favorecidos.", explanation: "El diseño tiene una responsabilidad social de ayudar a quienes tienen menos poder en la sociedad." },
-{ id: 38, question: "¿Qué término utiliza Bonsiepe para referirse al diseño centrado exclusivamente en el consumo y la imagen personal?", answer: "Diseño de estilo de vida (Life Style).", explanation: "Esta etiqueta describe al diseño que prioriza el estatus y la identidad superficial sobre las necesidades reales." },
-{ id: 39, question: "¿Qué característica define a una profesión en una sociedad tecnológicamente dinámica según el autor?", answer: "La capacidad de producir conocimientos propios.", explanation: "Para seguir siendo relevante, una profesión debe generar su propia investigación y avances teóricos." },
-{ id: 40, question: "El autor afirma que el diseño no es solo apariencia o emoción sino también _____; usabilidad y solución de problemas.", answer: "usabilidad y solución de problemas.", explanation: "La utilidad práctica de un diseño es tan importante como su impacto emocional o estético." }
+  { id: 1, question: `¿Cuál es el significado real del diseño según Gui Bonsiepe?`, answer: `Ser un solucionador inteligente de problemas.`, explanation: `Bonsiepe busca rescatar al diseño de su reducción a un mero espectáculo mediático, devolviéndole su propósito central de resolver necesidades funcionales.` },
+  { id: 2, question: `Bonsiepe afirma que el diseño actual ha dejado de ser un solucionador de problemas para convertirse en un _____ _____.`, answer: `evento mediático.`, explanation: `Se critica que hoy el diseño se use más como una herramienta de marketing y exhibición que como una disciplina de intervención crítica.` },
+  { id: 3, question: `¿En qué se basa el discurso proyectual contemporáneo según la crítica de Bonsiepe?`, answer: `En el uso de palabras de moda o tendencias en lugar de cuestiones críticas.`, explanation: `El discurso ha pasado de un análisis profundo a la adopción de términos superficiales que no cuestionan la realidad social.` },
+  { id: 4, question: `¿Qué función cumplen las revistas de diseño en el panorama actual según el autor?`, answer: `Funcionan como cajas de resonancia para el diseño como espectáculo.`, explanation: `En lugar de fomentar el debate crítico, estas publicaciones suelen amplificar los aspectos estéticos y espectaculares del diseño.` },
+  { id: 5, question: `¿Cuál era el objetivo principal de los protagonistas del movimiento de la "Buena Forma"?`, answer: `Perseguían fines sociopedagógicos y funcionales.`, explanation: `Este movimiento histórico buscaba educar a la sociedad y mejorar la calidad de vida a través de objetos útiles y bien diseñados.` },
+  { id: 6, question: `¿Cuál es el objetivo exclusivo de los modernos "Life Style Centers" según Bonsiepe?`, answer: `Perseguir fines comerciales y de marketing.`, explanation: `A diferencia de los movimientos históricos, los centros de "estilo de vida" actuales se enfocan únicamente en la venta y la imagen de marca.` },
+  { id: 7, question: `¿Cómo define Bonsiepe la relación ideal entre el diseño y la ciencia?`, answer: `Como una relación entre la complejidad temática y la metodología científica.`, explanation: `El diseño debe emplear métodos científicos cuando la complejidad del problema (técnica o ambiental) supera la mera intuición.` },
+  { id: 8, question: `Según Bonsiepe ¿cuándo debe el diseño buscar el conocimiento científico?`, answer: `Técnicamente cuando la temática del proyecto lo exige.`, explanation: `No todo proyecto requiere ciencia, pero aquellos con implicaciones técnicas rigurosas demandan conocimientos especializados.` },
+  { id: 9, question: `Mencione un ejemplo de Bonsiepe donde el conocimiento científico es fundamental para el diseño.`, answer: `El diseño de un envase de leche para minimizar el impacto medioambiental.`, explanation: `Resolver problemas ecológicos requiere análisis de materiales y ciclos de vida, lo cual es una tarea científica.` },
+  { id: 10, question: `¿Qué doctrina económica prioriza la libre actuación del mercado y la mínima intervención del Estado según el texto?`, answer: `El neoliberalismo.`, explanation: `Bonsiepe cuestiona cómo este modelo económico ha empujado al diseño a servir casi exclusivamente a los intereses del mercado.` },
+  { id: 11, question: `Bonsiepe propone rescatar la democracia como un concepto político y social alejándola de los puros _____ _____.`, answer: `intereses económicos.`, explanation: `La democracia debe ser un espacio de bienestar social y participación, no solo un mecanismo de transacciones mercantiles.` },
+  { id: 12, question: `¿Cómo define Bonsiepe el concepto de democracia en el contexto del diseño?`, answer: `Como la creación de un espacio de autodeterminación para un proyecto propio.`, explanation: `Diseñar democráticamente significa dar a las personas las herramientas para que decidan y den forma a sus propias vidas.` },
+  { id: 13, question: `Terminología de Kant: ¿Cómo se denomina la sujeción del individuo a la voluntad de terceros o de un orden impuesto?`, answer: `Heteronomía.`, explanation: `El diseño debe aspirar a reducir este estado de dependencia, donde el individuo es controlado por fuerzas externas.` },
+  { id: 14, question: `¿Cuál es el objetivo de Bonsiepe al adherirse a un concepto sustancial de democracia?`, answer: `La reducción de la heteronomía.`, explanation: `Una democracia sustantiva empodera al ciudadano, haciéndolo menos dependiente de órdenes impuestos desde fuera.` },
+  { id: 15, question: `¿Qué postura crítica asume Bonsiepe frente a las "grandes narrativas" mencionadas por Fredric Jameson?`, answer: `Rechaza el conformismo y cree que es necesario creer en la posibilidad de un futuro mejor.`, explanation: `El autor se opone al derrotismo, defendiendo que el diseñador tiene un rol activo y esperanzador en el cambio social.` },
+  { id: 16, question: `Según Edward Said ¿qué ejercicio define al humanismo?`, answer: `El ejercicio de competencias lingüísticas para comprender y manejar productos del lenguaje en la historia.`, explanation: `Esta definición resalta la importancia de entender el mundo mediante la interpretación crítica de sus productos y mensajes.` },
+  { id: 17, question: `Concepto: Humanismo Proyectual`, answer: `Ejercicio de capacidades proyectuales para interpretar necesidades sociales y elaborar propuestas emancipadoras.`, explanation: `Es la aplicación ética del diseño para ayudar a liberar y empoderar a grupos sociales marginados.` },
+  { id: 18, question: `¿Qué tipo de artefactos busca crear el humanismo proyectual según Bonsiepe?`, answer: `Artefactos instrumentales y artefactos semióticos.`, explanation: `Se enfoca tanto en herramientas funcionales (instrumentales) como en comunicaciones con significado (semióticas) que ayuden a la emancipación.` },
+  { id: 19, question: `¿Cuál es la finalidad social del humanismo proyectual?`, answer: `Reducir la dominación y la exclusión social.`, explanation: `Su objetivo final es usar el diseño como una herramienta de justicia contra la desigualdad y el control social.` },
+  { id: 20, question: `¿Por qué Kenneth Galbraith critica el uso del término "mercado"?`, answer: `Porque se utiliza para evitar las connotaciones negativas asociadas al término capitalismo.`, explanation: `El término se usa a menudo como una máscara neutral para ocultar las dinámicas de poder del sistema capitalista.` },
+  { id: 21, question: `¿Qué papel juegan las grandes corporaciones respecto al diseño según el texto?`, answer: `Utilizan el diseño como herramienta para expandir y mantener su poder.`, explanation: `Las empresas aprovechan el diseño para dominar mercados e influir en el comportamiento del consumidor en su beneficio.` },
+  { id: 22, question: `¿Cuál es el punto de contacto entre la manipulación y el diseño según Bonsiepe?`, answer: `La producción de la apariencia.`, explanation: `El diseño puede usarse de forma engañosa para que las cosas parezcan mejores o diferentes de lo que realmente son.` },
+  { id: 23, question: `¿Qué beneficio atribuye el autor a la industrialización en el contexto del consumo?`, answer: `La democratización del consumo mediante el acceso a tecnologías y productos útiles.`, explanation: `La industria permite que herramientas y bienes antes exclusivos lleguen a la mayoría, mejorando la calidad de vida general.` },
+  { id: 24, question: `Según el texto ¿qué elementos no deben dominar completamente un proyecto de diseño en detrimento de la utilidad?`, answer: `Los aspectos simbólicos y comunicativos.`, explanation: `Aunque el significado es importante, no debe eclipsar la función real y la utilidad del objeto diseñado.` },
+  { id: 25, question: `¿Qué riesgo menciona Bonsiepe al actuar bajo una normativa única o autoritaria en el diseño?`, answer: `El riesgo de convertirse en un "Gran Inquisidor" que impone reglas.`, explanation: `Los diseñadores deben evitar el dogmatismo y reconocer la diversidad de necesidades y puntos de vista.` },
+  { id: 26, question: `En el contexto de una ciudad "convivial" ¿cómo define Bonsiepe los espacios?`, answer: `Como lugares indeterminados donde se median intereses legítimos diferentes o contrarios.`, explanation: `Los espacios urbanos deben facilitar la negociación pacífica de las distintas visiones sociales.` },
+  { id: 27, question: `Virtud del diseño: Ligereza`, answer: `Considerar el flujo de materiales y energía para evitar el exceso o la superficialidad.`, explanation: `Este principio aboga por la eficiencia y sostenibilidad, evitando el desperdicio de recursos en decoraciones innecesarias.` },
+  { id: 28, question: `¿Qué riesgo corre el diseño cuando se reduce exclusivamente a lo efímero como las joyas o muebles de autor?`, answer: `Perder su dimensión crítica y ética vinculada a las preocupaciones básicas de la sociedad.`, explanation: `Centrarse solo en el lujo o el ego artístico desconecta al diseño de las necesidades reales de la mayoría.` },
+  { id: 29, question: `Bonsiepe defiende que el diseñador no debe ser solo un técnico sino también un _____ _____.`, answer: `pensador crítico.`, explanation: `La habilidad técnica no basta; el diseñador debe entender el impacto social y político de su trabajo.` },
+  { id: 30, question: `¿Qué significa "diseñar" en el contexto de la intervención en la realidad según Bonsiepe?`, answer: `Tener la predisposición a cambiar la realidad sin distanciarse de ella.`, explanation: `Diseñar es un acto de compromiso práctico para mejorar el mundo a través de la intervención directa.` },
+  { id: 31, question: `¿Qué debe defender enérgicamente cualquier sociedad que se defina como democrática?`, answer: `Los intereses públicos frente a los intereses privados desenfrenados.`, explanation: `La verdadera democracia protege los bienes comunes y el bienestar social por encima del lucro privado desmedido.` },
+  { id: 32, question: `Virtud del diseño: Alteridad`, answer: `El reconocimiento y respeto por las diferencias culturales frente a la homogeneización de la globalización.`, explanation: `El diseño debe celebrar la identidad local y la diversidad en lugar de imponer un estilo global único.` },
+  { id: 33, question: `¿Cuál es la relación entre la alteridad y la autonomía de un grupo social?`, answer: `Permite que cada grupo decida su propio camino sin imposiciones externas.`, explanation: `Respetar la diferencia empodera a las comunidades para que definan su propio desarrollo e identidad.` },
+  { id: 34, question: `Concepto: Visualidad (en el diseño)`, answer: `Capacidad de utilizar las imágenes como una forma propia de conocimiento y resolución de problemas.`, explanation: `La comunicación visual es una herramienta cognitiva, capaz de explicar realidades complejas más allá de lo decorativo.` },
+  { id: 35, question: `¿Qué disciplina del diseño ejemplifica la integración equilibrada entre imagen y texto?`, answer: `El infodiseño (diseño de información).`, explanation: `El diseño de información combina eficazmente lo visual y lo textual para hacer que los datos complejos sean comprensibles.` },
+  { id: 36, question: `¿Por qué es fundamental la teoría del diseño para la práctica profesional?`, answer: `Porque toda práctica se desarrolla frente a un escenario teórico y las profesiones sin base teórica se quedan atrás.`, explanation: `La teoría proporciona el marco crítico y los nuevos conocimientos necesarios para que una profesión evolucione.` },
+  { id: 37, question: `Según Bonsiepe el diseño debe ser un agente de transformación especialmente para los _____.`, answer: `dominados o menos favorecidos.`, explanation: `El diseño tiene una responsabilidad social de ayudar a quienes tienen menos poder en la sociedad.` },
+  { id: 38, question: `¿Qué término utiliza Bonsiepe para referirse al diseño centrado exclusivamente en el consumo y la imagen personal?`, answer: `Diseño de estilo de vida (Life Style).`, explanation: `Esta etiqueta describe al diseño que prioriza el estatus y la identidad superficial sobre las necesidades reales.` },
+  { id: 39, question: `¿Qué característica define a una profesión en una sociedad tecnológicamente dinámica según el autor?`, answer: `La capacidad de producir conocimientos propios.`, explanation: `Para seguir siendo relevante, una profesión debe generar su propia investigación y avances teóricos.` },
+  { id: 40, question: `El autor afirma que el diseño no es solo apariencia o emoción sino también _____; usabilidad y solución de problemas.`, answer: `usabilidad y solución de problemas.`, explanation: `La utilidad práctica de un diseño es tan importante como su impacto emocional o estético.` }
 ];
 
 export default function App() {
@@ -54,10 +54,8 @@ export default function App() {
   const [score, setScore] = useState(0);
   const [darkMode, setDarkMode] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // Detectar preferencia de sistema para el modo oscuro
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
       setDarkMode(true);
     }
@@ -72,7 +70,7 @@ export default function App() {
       setIsFlipped(false);
       setErrorMsg('');
     } else {
-      setErrorMsg('El nickname debe ser un número de máximo 9 dígitos.');
+      setErrorMsg('El ID debe ser numérico (máx. 9 dígitos).');
     }
   };
 
@@ -108,21 +106,13 @@ export default function App() {
     setIsFlipped(false);
   };
 
-  // Atajos de teclado
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (gameState !== 'playing') return;
-
-      if (e.code === 'Space') {
-        e.preventDefault();
-        handleFlip();
-      } else if (e.code === 'ArrowRight') {
-        handleNext(false);
-      } else if (e.code === 'ArrowLeft') {
-        handlePrev();
-      }
+      if (e.code === 'Space') { e.preventDefault(); handleFlip(); }
+      else if (e.code === 'ArrowRight') handleNext(false);
+      else if (e.code === 'ArrowLeft') handlePrev();
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [gameState, handleFlip, handleNext, handlePrev]);
@@ -134,11 +124,11 @@ export default function App() {
         .transform-style-3d { transform-style: preserve-3d; }
         .backface-hidden { backface-visibility: hidden; }
         .rotate-y-180 { transform: rotateY(180deg); }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
       `}} />
 
-      {/* Header */}
       <header className="p-6 flex justify-between items-center max-w-6xl mx-auto w-full">
-        <h1 className="text-xl font-bold tracking-tight opacity-80 uppercase">Estudio Bonsiepe</h1>
+        <h1 className="text-xl font-bold tracking-tight opacity-80 uppercase">Estudio: Pensamiento de Bonsiepe</h1>
         <button
           onClick={() => setDarkMode(!darkMode)}
           className={`p-3 rounded-full transition-all ${darkMode ? 'bg-gray-800 text-yellow-400' : 'bg-white shadow-sm text-gray-600'}`}
@@ -147,26 +137,21 @@ export default function App() {
         </button>
       </header>
 
-      {/* Main Content */}
       <main className="flex-grow container mx-auto px-4 flex flex-col justify-center max-w-4xl">
-        
         {gameState === 'login' && (
           <div className="flex flex-col items-center">
             <div className={`p-10 rounded-3xl shadow-2xl w-full max-w-md ${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-100'}`}>
               <h2 className="text-3xl font-bold mb-2 text-center">Identificación</h2>
-              <p className="text-center opacity-60 mb-8 text-sm">Ingrese su número de ID para comenzar el estudio</p>
-              
+              <p className="text-center opacity-60 mb-8 text-sm">Acceso al corpus teórico de Gui Bonsiepe</p>
               <form onSubmit={handleLogin} className="space-y-6">
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-widest mb-3 opacity-50">Nickname (Números)</label>
+                  <label className="block text-xs font-bold uppercase tracking-widest mb-3 opacity-50">ID Estudiante / Nickname</label>
                   <input
                     type="text"
                     maxLength="9"
                     value={nickname}
                     onChange={(e) => setNickname(e.target.value.replace(/\D/g, ''))}
-                    className={`w-full p-4 rounded-xl border focus:ring-4 focus:ring-blue-500/20 outline-none transition-all text-lg font-mono ${
-                      darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
-                    }`}
+                    className={`w-full p-4 rounded-xl border focus:ring-4 focus:ring-blue-500/20 outline-none transition-all text-lg font-mono ${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'}`}
                     placeholder="000000000"
                     required
                   />
@@ -176,8 +161,8 @@ export default function App() {
                     <AlertCircle size={14} /> {errorMsg}
                   </div>
                 )}
-                <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition-transform active:scale-95 shadow-lg shadow-blue-600/30">
-                  Entrar al Sistema
+                <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition-transform active:scale-95 shadow-lg">
+                  Comenzar Revisión
                 </button>
               </form>
             </div>
@@ -187,59 +172,52 @@ export default function App() {
         {gameState === 'playing' && (
           <div className="w-full flex flex-col items-center">
             <div className="w-full flex justify-between items-center mb-6 px-2 opacity-60 text-xs font-bold uppercase tracking-widest">
-              <span>Sesión: {nickname}</span>
-              <span>Progreso: {currentIndex + 1} / {cards.length}</span>
+              <span>Usuario: {nickname}</span>
+              <span>Ficha: {currentIndex + 1} / {cards.length}</span>
             </div>
 
-            <div className="w-full perspective-1000 relative min-h-[400px]">
+            <div className="w-full perspective-1000 relative min-h-[420px]">
               <div 
                 className={`relative w-full aspect-[4/3] sm:aspect-video cursor-pointer transition-transform duration-700 transform-style-3d ${isFlipped ? 'rotate-y-180' : ''}`}
                 onClick={handleFlip}
               >
                 {/* Frente */}
                 <div className={`absolute inset-0 backface-hidden flex flex-col items-center justify-center p-12 rounded-[2rem] shadow-2xl border ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
-                  <h3 className="text-2xl sm:text-3xl font-medium text-center leading-tight">
+                  <h3 className="text-xl sm:text-2xl font-medium text-center leading-relaxed">
                     {cards[currentIndex]?.question}
                   </h3>
                   <div className="absolute bottom-8 flex flex-col items-center gap-2 opacity-30">
                     <RefreshCw size={20} className="animate-pulse" />
-                    <span className="text-[10px] uppercase font-bold tracking-tighter">Click para revelar respuesta</span>
+                    <span className="text-[10px] uppercase font-bold tracking-tighter">Click para revelar concepto</span>
                   </div>
                 </div>
 
                 {/* Reverso */}
                 <div className={`absolute inset-0 backface-hidden rotate-y-180 flex flex-col items-center justify-center p-10 rounded-[2rem] shadow-2xl border ${darkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-100'}`}>
-                  <div className="text-center overflow-y-auto w-full max-h-full px-4 scrollbar-hide py-8">
+                  <div className="text-center overflow-y-auto w-full max-h-full px-4 scrollbar-hide py-4">
                     <h4 className="text-2xl font-bold mb-6 text-blue-500">
                       {cards[currentIndex]?.answer}
                     </h4>
                     {cards[currentIndex]?.explanation && (
-                      <p className="text-base opacity-70 leading-relaxed italic border-t border-gray-500/20 pt-6">
+                      <p className="text-sm sm:text-base opacity-75 leading-relaxed italic border-t border-gray-500/20 pt-6">
                         {cards[currentIndex].explanation}
                       </p>
                     )}
                   </div>
-                  
                   <div className="absolute bottom-8 flex gap-3">
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); handleNext(true); }}
-                      className="group flex items-center gap-2 px-5 py-3 bg-green-500/10 text-green-500 rounded-2xl hover:bg-green-500 hover:text-white transition-all font-bold text-sm"
-                    >
-                      <CheckCircle2 size={18} /> LO SABÍA
+                    <button onClick={(e) => { e.stopPropagation(); handleNext(true); }} className="px-5 py-3 bg-green-500/10 text-green-500 rounded-2xl hover:bg-green-500 hover:text-white transition-all font-bold text-xs uppercase tracking-widest">
+                      Aprendido
                     </button>
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); handleNext(false); }}
-                      className="group flex items-center gap-2 px-5 py-3 bg-red-500/10 text-red-500 rounded-2xl hover:bg-red-500 hover:text-white transition-all font-bold text-sm"
-                    >
-                      <XCircle size={18} /> REPASAR LUEGO
+                    <button onClick={(e) => { e.stopPropagation(); handleNext(false); }} className="px-5 py-3 bg-red-500/10 text-red-500 rounded-2xl hover:bg-red-500 hover:text-white transition-all font-bold text-xs uppercase tracking-widest">
+                      Repasar
                     </button>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-12 mt-12">
-              <button onClick={handlePrev} disabled={currentIndex === 0} className={`p-4 rounded-full transition-all ${currentIndex === 0 ? 'opacity-10 cursor-not-allowed' : 'hover:bg-blue-500/10 hover:scale-110'}`}>
+            <div className="flex items-center gap-12 mt-10">
+              <button onClick={handlePrev} disabled={currentIndex === 0} className={`p-4 rounded-full transition-all ${currentIndex === 0 ? 'opacity-10' : 'hover:bg-blue-500/10 hover:scale-110'}`}>
                 <ArrowLeft size={32} />
               </button>
               <button onClick={() => handleNext(false)} className="p-4 rounded-full transition-all hover:bg-blue-500/10 hover:scale-110">
@@ -251,13 +229,12 @@ export default function App() {
 
         {gameState === 'finished' && (
           <div className="text-center p-12 bg-white dark:bg-gray-800 rounded-[3rem] shadow-2xl border border-gray-500/10">
-            <h2 className="text-5xl font-black mb-6">Sesión Completa</h2>
+            <h2 className="text-4xl font-black mb-6">Fin de la Sesión</h2>
             <div className="flex flex-col items-center gap-2 mb-10">
-              <p className="text-sm uppercase tracking-widest opacity-50">Usuario: {nickname}</p>
               <div className="text-7xl font-mono font-bold text-blue-500">
                 {score} / {cards.length}
               </div>
-              <p className="font-medium opacity-80">Respuestas dominadas</p>
+              <p className="font-medium opacity-60">Conceptos dominados</p>
             </div>
             <button onClick={reloadGame} className="flex items-center gap-3 bg-gray-900 dark:bg-blue-600 text-white font-bold py-5 px-10 rounded-2xl hover:opacity-90 transition-all mx-auto">
               <RotateCcw size={22} /> Reiniciar Estudio
@@ -266,16 +243,15 @@ export default function App() {
         )}
       </main>
 
-      {/* Footer Fijo con Progreso */}
       {gameState === 'playing' && (
         <footer className="p-6">
           <div className="max-w-4xl mx-auto flex items-center gap-6">
-            <button onClick={reloadGame} className="p-3 bg-gray-500/10 rounded-2xl hover:bg-red-500/20 hover:text-red-500 transition-colors" title="Salir">
+            <button onClick={reloadGame} className="p-3 bg-gray-500/10 rounded-2xl hover:bg-red-500/20 transition-colors">
               <RotateCcw size={22} />
             </button>
-            <div className="flex-grow h-3 bg-gray-300 dark:bg-gray-700 rounded-full overflow-hidden">
+            <div className="flex-grow h-2 bg-gray-300 dark:bg-gray-700 rounded-full overflow-hidden">
               <div 
-                className="h-full bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)] transition-all duration-700"
+                className="h-full bg-blue-500 transition-all duration-500"
                 style={{ width: `${((currentIndex + 1) / cards.length) * 100}%` }}
               />
             </div>
