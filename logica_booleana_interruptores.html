@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Lógica Booleana</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+        }
+        .glow-effect {
+            filter: drop-shadow(0 0 15px rgba(250, 204, 21, 0.8));
+        }
+        .font-mono {
+            font-family: 'Roboto Mono', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- Componente Gráfico: Foco (LightBulb) ---
+        const LightBulb = ({ isOn }) => (
+            <div className={`transition-all duration-500 transform ${isOn ? 'scale-110' : 'scale-100'}`}>
+                <svg width="120" height="180" viewBox="0 0 100 150" className={`transition-all duration-300 ${isOn ? 'glow-effect' : ''}`}>
+                    {/* Base del foco (Rosca) */}
+                    <path d="M35,110 L65,110 L65,120 L35,120 Z" fill="#555" />
+                    <path d="M38,120 L62,120 L60,130 L40,130 Z" fill="#444" />
+                    <path d="M42,130 L58,130 L56,135 L44,135 Z" fill="#222" />
+                    
+                    {/* Cristal del foco */}
+                    <path 
+                        d="M50,110 C80,110 90,80 90,55 A40,40 0 1,0 10,55 C10,80 20,110 50,110" 
+                        fill={isOn ? "#fbbf24" : "#e5e7eb"} 
+                        stroke={isOn ? "#f59e0b" : "#9ca3af"}
+                        strokeWidth="2"
+                        className="transition-colors duration-300"
+                    />
+                    
+                    {/* Filamento (solo visible si está apagado o tenue) */}
+                    <path 
+                        d="M40,110 L40,80 L45,65 L55,65 L60,80 L60,110" 
+                        fill="none" 
+                        stroke={isOn ? "#fff" : "#9ca3af"} 
+                        strokeWidth="2"
+                        opacity={isOn ? 0.8 : 0.5}
+                    />
+                    
+                    {/* Brillo en el cristal */}
+                    <ellipse cx="30" cy="35" rx="8" ry="12" fill="white" opacity="0.3" transform="rotate(-15 30 35)" />
+                </svg>
+            </div>
+        );
+
+        // --- Componente Gráfico: Interruptor (ToggleSwitch) ---
+        const ToggleSwitch = ({ isOn, onClick, id }) => (
+            <div className="flex flex-col items-center mx-2 my-2">
+                <div 
+                    onClick={onClick}
+                    className={`relative w-20 h-32 rounded-lg cursor-pointer shadow-xl border-2 transition-colors duration-300
+                        ${isOn ? 'bg-green-100 border-green-500' : 'bg-gray-200 border-gray-400'}`}
+                >
+                    {/* Tornillos decorativos */}
+                    <div className="absolute top-2 left-1/2 transform -translate-x-1/2 w-2 h-2 rounded-full bg-gray-400"></div>
+                    <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-2 h-2 rounded-full bg-gray-400"></div>
+
+                    {/* Canal del interruptor */}
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-16 bg-black rounded-full opacity-20"></div>
+
+                    {/* La palanca física */}
+                    <div 
+                        className={`absolute left-1/2 transform -translate-x-1/2 w-8 h-12 rounded shadow-md transition-all duration-300 ease-in-out
+                            ${isOn 
+                                ? '-translate-y-4 bg-green-500 shadow-[0_4px_0_#15803d]' 
+                                : 'translate-y-4 bg-red-500 shadow-[0_4px_0_#b91c1c]'}
+                        `}
+                    >
+                        {/* Detalle de relieve en la palanca */}
+                        <div className="w-full h-full opacity-20 bg-gradient-to-r from-transparent via-white to-transparent"></div>
+                    </div>
+                </div>
+                
+                {/* Etiqueta debajo del interruptor */}
+                <div className="mt-2 text-center">
+                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">Int. {id + 1}</span>
+                    <span className={`text-xs font-mono font-bold px-2 py-1 rounded ${isOn ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                        {isOn ? 'ON' : 'OFF'}
+                    </span>
+                </div>
+            </div>
+        );
+
+        // --- Componente Principal ---
+        function App() {
+            const [numSwitches, setNumSwitches] = useState(3);
+            const [switches, setSwitches] = useState([false, false, false]);
+            const [logicMode, setLogicMode] = useState('AND');
+
+            // Actualizar el array de interruptores cuando cambia el número deseado
+            useEffect(() => {
+                setSwitches(prev => {
+                    const newArr = new Array(numSwitches).fill(false);
+                    // Preservar el estado de los interruptores que ya existían para mejor UX
+                    for(let i=0; i < Math.min(prev.length, numSwitches); i++) {
+                        newArr[i] = prev[i];
+                    }
+                    return newArr;
+                });
+            }, [numSwitches]);
+
+            const isLightOn = () => {
+                if (logicMode === 'AND') {
+                    return switches.every(s => s === true);
+                } else {
+                    return switches.some(s => s === true);
+                }
+            };
+
+            const toggleSwitch = (index) => {
+                const newSwitches = [...switches];
+                newSwitches[index] = !newSwitches[index];
+                setSwitches(newSwitches);
+            };
+
+            const bulbOn = isLightOn();
+
+            return (
+                <div className="min-h-screen flex flex-col items-center py-10 px-4 bg-slate-50 text-slate-800">
+                    
+                    {/* Header y Configuración */}
+                    <header className="w-full max-w-4xl bg-white rounded-2xl shadow-lg p-6 mb-8 border border-slate-200">
+                        <h1 className="text-3xl font-extrabold text-center text-slate-800 mb-2">Laboratorio de Lógica Booleana</h1>
+                        <p className="text-center text-slate-500 mb-6">Configura el circuito y prueba las compuertas lógicas</p>
+                        
+                        <div className="flex flex-col md:flex-row justify-center items-center gap-6 bg-slate-100 p-4 rounded-xl">
+                            {/* Selector de Modo */}
+                            <div className="flex items-center gap-3">
+                                <span className="font-semibold text-slate-700">Compuerta:</span>
+                                <div className="flex bg-white rounded-lg p-1 shadow-sm border border-slate-300">
+                                    <button 
+                                        onClick={() => setLogicMode('AND')}
+                                        className={`px-4 py-2 rounded-md font-bold transition-all ${logicMode === 'AND' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'}`}
+                                    >
+                                        AND (Y)
+                                    </button>
+                                    <button 
+                                        onClick={() => setLogicMode('OR')}
+                                        className={`px-4 py-2 rounded-md font-bold transition-all ${logicMode === 'OR' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'}`}
+                                    >
+                                        OR (O)
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Selector de Cantidad */}
+                            <div className="flex items-center gap-3 w-full md:w-auto">
+                                <span className="font-semibold text-slate-700">Interruptores:</span>
+                                <input 
+                                    type="range" 
+                                    min="2" 
+                                    max="8" 
+                                    value={numSwitches} 
+                                    onChange={(e) => setNumSwitches(parseInt(e.target.value))}
+                                    className="w-32 h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                                />
+                                <span className="font-mono font-bold bg-white px-3 py-1 rounded border border-slate-300">{numSwitches}</span>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* Área Principal de Simulación */}
+                    <main className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-6">
+                        
+                        {/* Panel de Salida (El Foco) */}
+                        <div className="col-span-1 md:col-span-3 bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden relative">
+                            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+                            
+                            <div className="p-8 flex flex-col items-center justify-center bg-gradient-to-b from-slate-50 to-white min-h-[300px]">
+                                <div className="relative z-10 mb-6">
+                                    <LightBulb isOn={bulbOn} />
+                                </div>
+                                
+                                <div className={`text-2xl font-black tracking-widest px-6 py-2 rounded-full border-2 transition-all duration-300
+                                    ${bulbOn 
+                                        ? 'bg-yellow-100 border-yellow-400 text-yellow-700 shadow-lg scale-110' 
+                                        : 'bg-slate-100 border-slate-300 text-slate-400'}`}>
+                                    {bulbOn ? 'ENCENDIDO' : 'APAGADO'}
+                                </div>
+
+                                <p className="mt-4 text-center max-w-md text-slate-600 text-sm bg-slate-100 p-3 rounded-lg border border-slate-200">
+                                    {logicMode === 'AND' 
+                                        ? <span>En modo <strong>AND</strong>, el foco se enciende solo si <span className="underline decoration-green-500 decoration-2 font-bold">TODOS</span> los interruptores están activos.</span>
+                                        : <span>En modo <strong>OR</strong>, el foco se enciende si <span className="underline decoration-green-500 decoration-2 font-bold">AL MENOS UNO</span> de los interruptores está activo.</span>
+                                    }
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Panel de Entrada (Los Interruptores) */}
+                        <div className="col-span-1 md:col-span-3 bg-slate-800 rounded-2xl shadow-inner p-6 border-4 border-slate-700">
+                            <h2 className="text-white text-center text-sm font-bold uppercase tracking-widest mb-6 border-b border-slate-600 pb-2">Panel de Control</h2>
+                            
+                            <div className="flex flex-wrap justify-center items-center gap-4">
+                                {switches.map((state, index) => (
+                                    <ToggleSwitch 
+                                        key={index} 
+                                        id={index}
+                                        isOn={state} 
+                                        onClick={() => toggleSwitch(index)} 
+                                    />
+                                ))}
+                            </div>
+                        </div>
+
+                    </main>
+
+                    {/* Footer */}
+                    <footer className="mt-8 text-center text-slate-400 text-sm">
+                        <p>Simulador Educativo de Lógica Booleana</p>
+                    </footer>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
