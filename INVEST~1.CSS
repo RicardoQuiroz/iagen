@@ -1,0 +1,430 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   investigacion.css
+   Sistema de diseño — "La Agencia de Detectives Audiovisuales"
+   Investigación Especializada · Comunicación · Ciencias en Artes Audiovisuales
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── VARIABLES (paleta completa) ─────────────────────────────────────────── */
+:root {
+  /* Colores base del curso */
+  --mid-blue:    #0F3460;
+  --dark-blue:   #16213E;
+  --gold:        #C9A84C;
+  --accent:      #E94560;
+  --white:       #FFFFFF;
+  --light-gray:  #F5F5F5;
+  --med-gray:    #CCCCCC;
+  --dark-gray:   #555555;
+  --black:       #111111;
+
+  /* Fondos tenues */
+  --light-blue:  #D6E4F0;
+  --light-gold:  #FFF3CD;
+  --light-red:   #FDE8EC;
+  --light-green: #E8F5E9;
+
+  /* Acto I — La Llamada (azul) */
+  --i-bg:  #E8F4FD;
+  --i-hdr: #1565C0;
+
+  /* Acto II — Recolección de Evidencias (ámbar) */
+  --ii-bg:  #FFF8E1;
+  --ii-hdr: #F57F17;
+
+  /* Acto III — El Tablero de Cuerdas (violeta) */
+  --iii-bg:  #EDE7F6;
+  --iii-hdr: #6A1B9A;
+
+  /* Acto IV — El Estreno (verde) */
+  --iv-bg:  #E8F5E9;
+  --iv-hdr: #2E7D32;
+
+  /* Tipografía */
+  --font:      Arial, Helvetica, sans-serif;
+  --size-base: 10pt;
+  --size-sm:   9pt;
+  --size-lg:   13pt;
+  --size-xl:   18pt;
+  --size-xxl:  28pt;
+}
+
+/* ─── RESET / BASE ─────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  font-family: var(--font);
+  font-size: var(--size-base);
+  color: var(--black);
+  background: #fff;
+  margin: 0;
+  padding: 20px;
+  line-height: 1.5;
+}
+
+/* Contenedor con ancho máximo para pantalla */
+.curso-wrapper {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+/* ─── TIPOGRAFÍA ────────────────────────────────────────────────────────────── */
+h1.curso-h1 {
+  font-family: var(--font);
+  font-size: var(--size-xl);
+  color: var(--dark-blue);
+  margin: 18px 0 4px 0;
+  font-weight: bold;
+}
+
+h2.curso-h2 {
+  font-family: var(--font);
+  font-size: var(--size-lg);
+  color: var(--mid-blue);
+  margin: 14px 0 4px 0;
+  font-weight: bold;
+}
+
+p.curso-p {
+  font-family: var(--font);
+  font-size: var(--size-base);
+  margin: 4px 0 8px 0;
+}
+
+/* ─── SEPARADORES ───────────────────────────────────────────────────────────── */
+.divider {
+  border: none;
+  border-bottom: 3px solid var(--gold);
+  margin: 4px 0 12px 0;
+}
+.divider-blue  { border-color: var(--mid-blue); }
+.divider-i     { border-color: var(--i-hdr); }
+.divider-ii    { border-color: var(--ii-hdr); }
+.divider-iii   { border-color: var(--iii-hdr); }
+.divider-iv    { border-color: var(--iv-hdr); }
+
+/* ─── ETIQUETA DE SECCIÓN ───────────────────────────────────────────────────── */
+.section-label {
+  font-family: var(--font);
+  font-size: var(--size-sm);
+  font-weight: bold;
+  text-transform: uppercase;
+  color: var(--mid-blue);
+  margin: 14px 0 4px 0;
+}
+.section-label::before { content: "◆  "; }
+
+/* ─── PORTADA DEL CURSO ──────────────────────────────────────────────────────── */
+.portada {
+  text-align: center;
+  padding: 24px 0 16px 0;
+  border-bottom: 4px solid var(--gold);
+  margin-bottom: 24px;
+}
+.portada .icono      { font-size: var(--size-xxl); margin: 0; }
+.portada .titulo     { font-size: 15pt; font-weight: bold; color: var(--mid-blue); margin: 8px 0 2px 0; }
+.portada .subtitulo  { font-size: 11pt; font-style: italic; color: var(--dark-gray); margin: 0 0 8px 0; }
+.portada .bajada     { font-size: var(--size-base); color: var(--mid-blue); font-style: italic; max-width: 620px; margin: 0 auto 8px auto; }
+
+/* ─── ENCABEZADO DE ACTO ─────────────────────────────────────────────────────── */
+.act-header {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 12px;
+}
+.act-header td {
+  font-family: var(--font);
+  text-align: center;
+  padding: 14px 10px;
+  color: #fff;
+}
+.act-header .act-title { font-size: 14pt; font-weight: bold; display: block; }
+.act-header .act-sub   { font-size: 10pt; font-style: italic; }
+
+/* Colores de acto en el encabezado */
+.act-i   .act-header td, td.act-i-hdr   { background-color: var(--i-hdr);   border-color: var(--i-hdr); }
+.act-ii  .act-header td, td.act-ii-hdr  { background-color: var(--ii-hdr);  border-color: var(--ii-hdr); }
+.act-iii .act-header td, td.act-iii-hdr { background-color: var(--iii-hdr); border-color: var(--iii-hdr); }
+.act-iv  .act-header td, td.act-iv-hdr  { background-color: var(--iv-hdr);  border-color: var(--iv-hdr); }
+
+/* ─── CAJA DE INSIGNIA ───────────────────────────────────────────────────────── */
+.badge-box {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+.badge-box .badge-label {
+  font-family: var(--font);
+  font-size: var(--size-base);
+  padding: 8px 12px;
+  border: 1px solid;
+}
+.badge-box .badge-pts {
+  font-family: var(--font);
+  font-size: 12pt;
+  font-weight: bold;
+  text-align: center;
+  padding: 8px 12px;
+  color: #fff;
+  width: 110px;
+  border: 1px solid;
+}
+
+/* Variantes de color por acto */
+.act-i   .badge-box .badge-label { background-color: var(--i-bg);   border-color: var(--i-hdr); }
+.act-i   .badge-box .badge-pts   { background-color: var(--i-hdr);  border-color: var(--i-hdr); }
+.act-ii  .badge-box .badge-label { background-color: var(--ii-bg);  border-color: var(--ii-hdr); }
+.act-ii  .badge-box .badge-pts   { background-color: var(--ii-hdr); border-color: var(--ii-hdr); }
+.act-iii .badge-box .badge-label { background-color: var(--iii-bg); border-color: var(--iii-hdr); }
+.act-iii .badge-box .badge-pts   { background-color: var(--iii-hdr);border-color: var(--iii-hdr); }
+.act-iv  .badge-box .badge-label { background-color: var(--iv-bg);  border-color: var(--iv-hdr); }
+.act-iv  .badge-box .badge-pts   { background-color: var(--iv-hdr); border-color: var(--iv-hdr); }
+
+/* ─── TABLA DE INFO (clave / valor) ──────────────────────────────────────────── */
+.info-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+.info-table th, .info-table td {
+  font-family: var(--font);
+  font-size: var(--size-base);
+  padding: 5px 10px;
+  border: 1px solid var(--med-gray);
+}
+.info-table th {
+  font-weight: bold;
+  background-color: var(--light-blue);
+  width: 180px;
+  text-align: left;
+}
+.info-table td { background-color: #fff; }
+
+/* Variante por acto */
+.act-i   .info-table th { background-color: var(--i-bg); }
+.act-ii  .info-table th { background-color: var(--ii-bg); }
+.act-iii .info-table th { background-color: var(--iii-bg); }
+.act-iv  .info-table th { background-color: var(--iv-bg); }
+
+/* ─── TABLA DE CHECKLIST ─────────────────────────────────────────────────────── */
+.check-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+.check-table td {
+  font-family: var(--font);
+  font-size: var(--size-base);
+  border: 1px solid var(--med-gray);
+  padding: 6px;
+}
+.check-table .check-box {
+  background-color: var(--light-gold);
+  text-align: center;
+  width: 32px;
+  font-size: 14pt;
+}
+.check-table .check-content { background-color: #fff; padding: 6px 12px; }
+.check-table .check-note    { color: var(--dark-gray); font-style: italic; font-size: var(--size-sm); display: block; }
+
+/* ─── CAJA DE NOTAS (líneas) ─────────────────────────────────────────────────── */
+.notes-label {
+  font-family: var(--font);
+  font-size: var(--size-sm);
+  font-weight: bold;
+  color: var(--dark-gray);
+  text-transform: uppercase;
+  margin-top: 10px;
+}
+.notes-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+.notes-table td {
+  border: none;
+  border-bottom: 1px solid var(--med-gray);
+  height: 28px;
+  padding: 0 4px;
+}
+
+/* ─── CAJA DE INFORMACIÓN / AVISO ────────────────────────────────────────────── */
+.info-box {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0;
+}
+.info-box td {
+  font-family: var(--font);
+  font-size: var(--size-base);
+  background-color: var(--light-gold);
+  border: 1px solid var(--gold);
+  padding: 12px 16px;
+}
+.info-box .info-title { font-weight: bold; color: var(--gold); display: block; margin-bottom: 4px; }
+.info-box .info-body  { font-style: italic; }
+
+/* Variantes */
+.info-box.danger td   { background-color: var(--light-red);   border-color: var(--accent); }
+.info-box.danger .info-title { color: var(--accent); }
+.info-box.success td  { background-color: var(--light-green);  border-color: #2E7D32; }
+.info-box.success .info-title { color: #2E7D32; }
+.info-box.blue td     { background-color: var(--light-blue);   border-color: var(--mid-blue); }
+.info-box.blue .info-title { color: var(--mid-blue); }
+
+/* ─── TABLA MAPA DE MISIÓN ───────────────────────────────────────────────────── */
+.mapa-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+.mapa-table th {
+  font-family: var(--font);
+  font-size: var(--size-base);
+  background-color: var(--mid-blue);
+  color: #fff;
+  padding: 7px 10px;
+  border: 1px solid var(--mid-blue);
+  text-align: left;
+}
+.mapa-table td {
+  font-family: var(--font);
+  font-size: var(--size-base);
+  padding: 5px 10px;
+  border: 1px solid var(--med-gray);
+}
+.mapa-table .row-i   td { background-color: var(--i-bg); }
+.mapa-table .row-i   .acto-cell { color: var(--i-hdr); font-weight: bold; }
+.mapa-table .row-ii  td { background-color: var(--ii-bg); }
+.mapa-table .row-ii  .acto-cell { color: var(--ii-hdr); font-weight: bold; }
+.mapa-table .row-iii td { background-color: var(--iii-bg); }
+.mapa-table .row-iii .acto-cell { color: var(--iii-hdr); font-weight: bold; }
+.mapa-table .row-iv  td { background-color: var(--iv-bg); }
+.mapa-table .row-iv  .acto-cell { color: var(--iv-hdr); font-weight: bold; }
+.mapa-table .row-bonus td { background-color: var(--light-gold); color: var(--gold); font-weight: bold; }
+.mapa-table .row-total td { background-color: var(--mid-blue); color: #fff; font-weight: bold; }
+.mapa-table .row-total .pts-cell { background-color: var(--gold); }
+.mapa-table .pts-cell { text-align: center; font-weight: bold; font-size: 12pt; }
+.mapa-table .acu-cell { text-align: center; color: var(--dark-gray); }
+
+/* ─── ESCALA DE CALIFICACIÓN ─────────────────────────────────────────────────── */
+.grade-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+.grade-table th {
+  font-family: var(--font);
+  font-size: var(--size-base);
+  background-color: var(--mid-blue);
+  color: #fff;
+  padding: 7px 10px;
+  border: 1px solid var(--mid-blue);
+  text-align: left;
+}
+.grade-table td {
+  font-family: var(--font);
+  font-size: var(--size-base);
+  padding: 6px 10px;
+  border: 1px solid var(--med-gray);
+}
+.grade-table .grade-a  td { background-color: #E8F5E9; }
+.grade-table .grade-b  td { background-color: #E3F2FD; }
+.grade-table .grade-c  td { background-color: var(--light-gold); }
+.grade-table .grade-d  td { background-color: var(--light-red); }
+.grade-table .pts-range { text-align: center; font-weight: bold; font-size: 12pt; }
+
+/* ─── TABLA DE DEDUCCIONES ───────────────────────────────────────────────────── */
+.ded-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+.ded-table th {
+  font-family: var(--font);
+  background-color: var(--accent);
+  color: #fff;
+  padding: 6px 10px;
+  border: 1px solid var(--accent);
+  font-size: var(--size-base);
+}
+.ded-table td {
+  font-family: var(--font);
+  font-size: var(--size-base);
+  padding: 5px 10px;
+  border: 1px solid var(--med-gray);
+  background-color: var(--light-red);
+}
+.ded-table .ded-pts {
+  text-align: center;
+  font-weight: bold;
+  font-size: 12pt;
+  color: var(--accent);
+  background-color: #fff;
+  width: 90px;
+}
+
+/* ─── TABLA FLIPPITY ─────────────────────────────────────────────────────────── */
+.flippity-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+.flippity-table th {
+  font-family: var(--font);
+  font-size: var(--size-base);
+  background-color: var(--dark-blue);
+  color: #fff;
+  padding: 6px 10px;
+  border: 1px solid var(--dark-blue);
+}
+.flippity-table td {
+  font-family: var(--font);
+  font-size: var(--size-base);
+  padding: 5px 10px;
+  border: 1px solid var(--med-gray);
+  background-color: #fff;
+}
+.flippity-table .row-bonus td { background-color: var(--light-gold); }
+
+/* ─── BARRA DE NAVEGACIÓN ENTRE ACTOS (JS la activa) ─────────────────────────── */
+.act-nav {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 12px 0 20px 0;
+}
+.act-nav a {
+  font-family: var(--font);
+  font-size: var(--size-sm);
+  font-weight: bold;
+  text-decoration: none;
+  padding: 6px 14px;
+  border-radius: 4px;
+  color: #fff;
+  transition: opacity 0.15s;
+}
+.act-nav a:hover { opacity: 0.82; }
+.act-nav .nav-i   { background-color: var(--i-hdr); }
+.act-nav .nav-ii  { background-color: var(--ii-hdr); }
+.act-nav .nav-iii { background-color: var(--iii-hdr); }
+.act-nav .nav-iv  { background-color: var(--iv-hdr); }
+.act-nav .nav-print { background-color: var(--dark-gray); }
+
+/* ─── SECCIÓN DE ACTO (contenedor) ──────────────────────────────────────────── */
+.act-section { margin-bottom: 32px; }
+
+/* ─── IMPRESIÓN ──────────────────────────────────────────────────────────────── */
+@media print {
+  .act-nav   { display: none; }
+  body        { padding: 0; font-size: 9pt; }
+  .act-section { page-break-inside: avoid; }
+  .badge-box, .info-box, .check-table { page-break-inside: avoid; }
+}
+
+/* ─── RESPONSIVO BÁSICO ──────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .info-table th { width: 120px; }
+  .badge-box .badge-pts { width: 80px; font-size: 10pt; }
+  .act-nav { gap: 4px; }
+  .act-nav a { padding: 5px 10px; font-size: 8pt; }
+}
