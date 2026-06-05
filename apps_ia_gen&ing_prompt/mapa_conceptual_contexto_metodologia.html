@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mapa conceptual — Contexto y Metodología del Taller</title>
+<style>
+  :root{
+    --orange:#FF5F1F; --ink:#241C2F; --paper:#ffffff; --bg:#f4f2f7;
+    --b1:#1565C0; --b1bg:#E8F4FD;
+    --b2:#6A1B9A; --b2bg:#EDE7F6;
+    --b3:#2E7D32; --b3bg:#E8F5E9;
+    --ex:#F57F17; --exbg:#FFF8E1;
+    --line:#c9c4d2;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;color:var(--ink);background:var(--bg)}
+  .app{display:flex;flex-direction:column;height:100vh}
+  header{background:var(--paper);border-bottom:3px solid var(--orange);padding:12px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;box-shadow:0 1px 6px rgba(0,0,0,.06);z-index:5}
+  header h1{font-size:18px;margin:0;font-weight:800;letter-spacing:.2px}
+  header .sub{font-size:12px;color:#6b6577;margin-top:2px}
+  .toolbar{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .btn{border:1px solid #d8d3e0;background:#fff;border-radius:999px;padding:7px 13px;font-size:13px;cursor:pointer;color:var(--ink);font-weight:600;transition:.15s}
+  .btn:hover{background:#f3eefb;border-color:#bcaee0}
+  .btn.primary{background:var(--orange);border-color:var(--orange);color:#fff}
+  .btn.primary:hover{filter:brightness(.95)}
+  .main{flex:1;display:flex;min-height:0}
+  .viewport{flex:1;overflow:auto;position:relative;cursor:grab;background:
+     radial-gradient(circle at 1px 1px, #e3dfe9 1px, transparent 0) 0 0/22px 22px}
+  .viewport.dragging{cursor:grabbing}
+  .stage{padding:48px 60px;display:inline-block;transform-origin:0 0;transition:transform .12s ease-out}
+  /* ---- mind map ---- */
+  .mnode-container{display:flex;align-items:center}
+  .mchildren{display:flex;flex-direction:column;justify-content:center;gap:10px;position:relative}
+  /* connectors */
+  .mchildren>.mnode-container{position:relative;margin-left:40px}
+  .mchildren>.mnode-container::before{content:"";position:absolute;top:50%;left:-40px;width:40px;height:2px;background:var(--bc,var(--line))}
+  .mchildren>.mnode-container::after{content:"";position:absolute;left:-40px;width:2px;background:var(--bc,var(--line));
+     top:calc(-5px - 50%);height:calc(100% + 10px)}
+  .mchildren>.mnode-container:first-child::after{top:50%;height:calc(50% + 10px)}
+  .mchildren>.mnode-container:last-child::after{top:-5px;height:calc(50% + 5px)}
+  .mchildren>.mnode-container:only-child::after{display:none}
+  .pill{position:relative;display:inline-flex;align-items:center;gap:8px;max-width:300px;
+     background:var(--pbg,#fff);border:2px solid var(--pc,var(--line));border-radius:14px;
+     padding:9px 13px;font-size:13.5px;font-weight:600;line-height:1.25;cursor:pointer;
+     box-shadow:0 2px 5px rgba(40,28,60,.10);transition:.15s;color:#2a2235}
+  .pill:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(40,28,60,.18)}
+  .pill.root{background:var(--orange);border-color:var(--orange);color:#fff;font-size:15px;font-weight:800;max-width:none;box-shadow:0 4px 14px rgba(255,95,31,.4)}
+  .pill.sel{outline:3px solid rgba(255,95,31,.45);outline-offset:2px}
+  .pill .caret{font-size:11px;opacity:.8;transition:transform .15s}
+  .mnode-container.collapsed > .mnode-container, .collapsed .mchildren{display:none}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--pc,#999);flex:0 0 auto}
+  .pill.root .dot{background:#fff}
+  .badge{font-size:9.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;
+     background:var(--ex);color:#fff;border-radius:6px;padding:2px 6px;margin-left:2px}
+  .hint{position:absolute;bottom:12px;left:14px;background:rgba(36,28,47,.82);color:#fff;font-size:11.5px;padding:6px 11px;border-radius:8px;pointer-events:none}
+  /* ---- detail panel ---- */
+  .panel{width:380px;flex:0 0 380px;background:var(--paper);border-left:1px solid #e3dfe9;overflow:auto;padding:0;display:flex;flex-direction:column}
+  .panel .ph{padding:14px 18px;border-bottom:1px solid #eee;position:sticky;top:0;background:#fff}
+  .panel .ph .tag{display:inline-block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;padding:3px 9px;border-radius:7px;color:#fff;margin-bottom:7px}
+  .panel .ph h2{margin:0;font-size:16.5px;line-height:1.3}
+  .panel .pb{padding:16px 18px;font-size:14px;line-height:1.55;color:#39323f}
+  .panel .pb p{margin:0 0 11px}
+  .panel .pb ul{margin:0 0 11px;padding-left:20px}
+  .panel .pb li{margin-bottom:6px}
+  .empty{color:#8a8398;font-style:italic;padding:24px 18px;font-size:14px}
+  table.t{border-collapse:collapse;width:100%;font-size:12.5px;margin:4px 0 12px}
+  table.t th,table.t td{border:1px solid #e0dbe8;padding:6px 8px;text-align:left;vertical-align:top}
+  table.t th{background:var(--ink);color:#fff;font-weight:700}
+  table.t tr:nth-child(even) td{background:#faf8fd}
+  /* exercises */
+  .opt{display:block;width:100%;text-align:left;border:1.5px solid #ddd;background:#fff;border-radius:10px;padding:10px 12px;margin-bottom:8px;cursor:pointer;font-size:13.5px;transition:.15s}
+  .opt:hover{border-color:var(--ex);background:var(--exbg)}
+  .opt.ok{border-color:#2E7D32;background:#E8F5E9;font-weight:700}
+  .opt.no{border-color:#c62828;background:#fdeaea}
+  .fb{font-size:13px;font-weight:700;margin-top:6px}
+  .match-grid{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+  .mrow{display:flex;gap:8px;align-items:stretch}
+  .mitem{flex:1;border:1.5px solid #ddd;border-radius:9px;padding:8px 10px;font-size:12.5px;cursor:pointer;background:#fff}
+  .mitem.left{font-weight:700}
+  .mitem.picked{border-color:var(--b2);background:var(--b2bg)}
+  .mitem.done{border-color:#2E7D32;background:#E8F5E9;cursor:default}
+  .casebox{background:var(--exbg);border-left:5px solid var(--ex);border-radius:10px;padding:12px 14px;font-size:13.5px;line-height:1.55}
+  .steps{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+  .step{background:#fff;border:1px solid #e7c98a;border-radius:8px;padding:6px 9px;font-size:12px;font-weight:700}
+  @media(max-width:880px){
+    .main{flex-direction:column}
+    .panel{width:auto;flex:1 1 auto;border-left:0;border-top:1px solid #e3dfe9;max-height:42vh}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div>
+      <h1>Contexto y Metodología del Taller</h1>
+      <div class="sub">Mapa conceptual interactivo · Módulo 2 — IA Generativa y Prompt Engineering</div>
+    </div>
+    <div class="toolbar">
+      <button class="btn" id="expandAll">Expandir todo</button>
+      <button class="btn" id="collapseAll">Colapsar todo</button>
+      <button class="btn" id="zoomOut">–</button>
+      <button class="btn" id="zoomIn">+</button>
+      <button class="btn" id="zoomReset">Reiniciar</button>
+    </div>
+  </header>
+  <div class="main">
+    <div class="viewport" id="viewport">
+      <div class="stage" id="stage"></div>
+      <div class="hint">Clic en un módulo de color para desplegar sus subniveles · arrastra para mover</div>
+    </div>
+    <aside class="panel" id="panel">
+      <div class="empty">Selecciona cualquier nodo del mapa para ver aquí su contenido completo.</div>
+    </aside>
+  </div>
+</div>
+
+<script>
+/* ================= DATA (todo el contenido del mapa de Algor) ================= */
+const TREE = {
+  label:"Contexto y Metodología del Taller", root:true,
+  detailHtml:"<p>Mapa conceptual del bloque introductorio del Módulo 2. Reúne el posicionamiento estratégico del módulo, la arquitectura completa del diplomado y la metodología de taller activo. Haz clic en cada rama de color para explorar sus subniveles.</p>",
+  children:[
+    { label:"1. Posicionamiento Estratégico y Propósito", color:"b1",
+      detailHtml:`<p>El módulo constituye el <b>pilar fundamental y la columna vertebral operativa</b> de todo el programa de postgrado. Su objetivo primordial es dotar al profesional de las capacidades para establecer una <b>comunicación de nivel experto</b> con la IA generativa.</p>
+      <p>No se limita al intercambio básico de información: se enfoca en la <b>producción de piezas individuales de alta calidad</b> y en la <b>creación de asistentes personales sin código (no-code)</b>, base de cualquier desarrollo posterior del diplomado.</p>`,
+      children:[
+        { label:"Destreza clave: Prompt Engineering", color:"b1",
+          detailHtml:`<p>La relevancia del bloque radica en una destreza técnica específica: el <b>Prompt Engineering</b>. Sin su dominio, la interacción con los modelos de lenguaje carece de la precisión necesaria para entornos corporativos.</p>
+          <p>El estudiante aprende a orquestar instrucciones que transforman la IA de un simple motor de búsqueda en un <b>colaborador estratégico</b> capaz de generar resultados refinados y adaptados a las necesidades de una marca.</p>` },
+        { label:"1.1 Frontera con el Módulo 3", color:"b1",
+          detailHtml:`<p>Es crucial delimitar el alcance para evitar solapamientos. Este módulo se sitúa en la <b>capa artesanal</b> (calidad de la pieza única y el prompt perfecto); el Módulo 3 (Content Engineering) se traslada a la <b>capa fábrica</b>. La diferencia fundamental reside en la <b>escala y la automatización</b>.</p>`,
+          children:[
+            { label:"Regla de demarcación", color:"b1",
+              detailHtml:`<ul>
+              <li><b>Pertenece a este módulo:</b> diseñar un buen prompt o producir una pieza individual excelente (un copy excelente, una imagen impactante).</li>
+              <li><b>Pertenece al Módulo 3:</b> montar un sistema para generar 50 piezas simultáneas y programar su publicación automática.</li></ul>` },
+            { label:"Exclusiones explícitas", color:"b1",
+              detailHtml:`<p>Quedan fuera de este módulo:</p><ul>
+              <li>Generación masiva por lotes.</li>
+              <li>Calendarios de contenido automatizados.</li>
+              <li>Conexión entre apps mediante APIs o integradores (Make, Zapier).</li>
+              <li>Diseño visual masivo (Canva AI, Adobe Firefly) — reservado para etapas avanzadas.</li></ul>` }
+          ]},
+        { label:"Comprobación", color:"b1", type:"mc", badge:"Quiz",
+          detailHtml:"", mc:{
+            q:"¿Cuál es el criterio principal para distinguir si una actividad pertenece a este módulo o al siguiente?",
+            opts:[
+              "La calidad estética del resultado final obtenido.",
+              "La escala de producción: si es una pieza artesanal o generación masiva.",
+              "El uso exclusivo de modelos de lenguaje frente a modelos de imagen."
+            ], answer:1,
+            okMsg:"Correcto. El criterio es la escala: pieza artesanal (M2) vs. generación masiva (M3).",
+            noMsg:"No exactamente. El criterio decisivo es la escala de producción, no la estética ni el tipo de modelo."
+          }}
+      ]},
+
+    { label:"2. Mapa Integral del Diplomado (8 módulos)", color:"b2",
+      detailHtml:`<p>El diplomado se visualiza como un <b>ecosistema completo</b> donde cada módulo cumple un rol específico en la cadena de valor del marketing digital, desde la mentalidad estratégica inicial hasta la automatización extrema del final.</p>
+      <p>Cada conocimiento es <b>prerrequisito del siguiente</b>: dominar la IA generativa aquí habilita ejecutar campañas de pauta (M5) u optimizar la visibilidad en motores de respuesta IA / GEO (M6).</p>`,
+      children:[
+        { label:"Arquitectura de los 8 módulos", color:"b2",
+          detailHtml:`<table class="t"><tr><th>Mód.</th><th>Capa / Rol</th><th>Alcance</th></tr>
+          <tr><td>M1</td><td>Ecosistema de Mkt Digital y la IA</td><td>Panorama general y mentalidad estratégica.</td></tr>
+          <tr><td>M2</td><td>IA Generativa y Prompt Engineering</td><td>Capa artesanal: comunicación con la IA, piezas individuales y asistentes.</td></tr>
+          <tr><td>M3</td><td>Content Engineering y Automatización</td><td>Capa fábrica: producción de contenido y diseño visual a escala.</td></tr>
+          <tr><td>M4</td><td>Estrategias y Chatbots</td><td>Agentes conversacionales para captación de usuarios.</td></tr>
+          <tr><td>M5</td><td>Campañas Digitales con IA</td><td>IA generativa en pauta (Meta Ads y Google Ads).</td></tr>
+          <tr><td>M6</td><td>Generative Engine Optimization (GEO)</td><td>Visibilidad en motores de respuesta de IA.</td></tr>
+          <tr><td>M7</td><td>Marketing Analytics &amp; AI-Driven Decisions</td><td>Análisis cuantitativo y decisiones basadas en datos.</td></tr>
+          <tr><td>M8</td><td>Workflows &amp; Automation IA</td><td>Integración extremo a extremo (Make, Zapier, APIs).</td></tr></table>` },
+        { label:"Ejercicio de emparejamiento", color:"b2", type:"match", badge:"Empareja",
+          detailHtml:"", match:{
+            pairs:[
+              {l:"Módulo 2", r:"Capa artesanal y Prompt Engineering."},
+              {l:"Módulo 3", r:"Capa fábrica y producción a escala."},
+              {l:"Módulo 8", r:"Integración extremo a extremo con APIs."}
+            ]}}
+      ]},
+
+    { label:"3. Metodología de Taller Activo (Hands-on)", color:"b3",
+      detailHtml:`<p>Rompe con la enseñanza teórica tradicional: el tiempo de conexión sincrónica se aprovecha <b>íntegramente para la práctica y la creación</b>. No hay sesiones de exposición pasiva de trabajos; el aprendizaje ocurre por ejecución en vivo.</p>
+      <p>Cada sesión de 2.5 h está estructurada para pasar <b>del concepto a la realidad en un solo encuentro</b>.</p>`,
+      children:[
+        { label:"Estructura de la sesión (150 min)", color:"b3",
+          detailHtml:`<ul>
+          <li><b>Concepto clave (30 min):</b> fundamento teórico, anclado en fuentes concretas y actualizadas.</li>
+          <li><b>Demostración en vivo (45 min):</b> el docente modela la técnica con una marca demo (p. ej. <i>Café Illimani</i>).</li>
+          <li><b>Práctica guiada / co-creación (50 min):</b> los estudiantes aplican lo aprendido con retroalimentación inmediata.</li>
+          <li><b>Actividad síncrona de cierre (20 min):</b> micro-tarea obligatoria que aporta una pieza tangible al proyecto.</li>
+          <li><b>Síntesis y dudas (5 min):</b> consolidación y preparación del foro semanal.</li></ul>` },
+        { label:"3.1 Sincronía como garantía de avance", color:"b3",
+          detailHtml:`<p>Cambio clave frente a versiones anteriores: se eliminan los retos asíncronos pesados. El <b>cierre de cada sesión es sincrónico y acompañado</b>, de modo que el estudiante no acumula tareas pendientes, sino que avanza bajo supervisión del docente. Las cargas fuera del aula se concentran <b>solo en los foros</b> de discusión.</p>` },
+        { label:"3.2 Chatbots frente a Agentes", color:"b3",
+          detailHtml:`<p>Conviven dos vías tecnológicas complementarias que el estudiante debe aprender a alternar según el caso de uso.</p>`,
+          children:[
+            { label:"Chatbot (ChatGPT, Claude, Gemini)", color:"b3",
+              detailHtml:`<p>Motor principal para la <b>generación de contenido</b> creativo, analítico y estratégico. Es la herramienta de interacción directa mediante <b>lenguaje natural</b>.</p>` },
+            { label:"Agente de escritorio (Cowork / Antigravity 2.0)", color:"b3",
+              detailHtml:`<p>Se emplea para la <b>construcción técnica de una SPA</b> (aplicación web de una sola página). Automatiza la conexión entre una <b>Google Sheet</b> y el código mediante <b>Apps Script</b>, creando una herramienta propia que vive <b>fuera del chat</b>.</p>
+              <p>Desde la primera sesión se enseña cuándo conviene la flexibilidad de un chatbot y cuándo desarrollar un asistente estructurado en una app web propia.</p>` }
+          ]},
+        { label:"Caso práctico: distribución del tiempo", color:"b3", type:"case", badge:"Caso",
+          detailHtml:"", caseData:{
+            text:"Imagina una sesión de 150 minutos. Los primeros 30 min se dedican a entender la teoría del 'Prompt Maestro'. Luego, 45 min, el profesor crea un prompt para la marca ficticia 'Café Illimani'. En los siguientes 50 min, tú diseñas el prompt para tu propia marca real mientras el docente corrige errores en tiempo real. Finalmente, en 20 min, integras ese prompt en tu propia aplicación web (SPA) antes de cerrar la sesión. Al finalizar, el trabajo del día está 100% terminado.",
+            steps:["30 min · Teoría","45 min · Demo (Café Illimani)","50 min · Tu marca","20 min · Integrar en la SPA"]
+          }}
+      ]}
+  ]
+};
+
+const COLORS={b1:{c:"var(--b1)",bg:"var(--b1bg)"},b2:{c:"var(--b2)",bg:"var(--b2bg)"},b3:{c:"var(--b3)",bg:"var(--b3bg)"},ex:{c:"var(--ex)",bg:"var(--exbg)"}};
+
+/* ================= RENDER ================= */
+const stage=document.getElementById('stage');
+const panel=document.getElementById('panel');
+let selected=null;
+
+function makeNode(node, inheritedColor){
+  const colorKey = node.type ? 'ex' : (node.color || inheritedColor);
+  const col = COLORS[colorKey] || {c:"var(--line)",bg:"#fff"};
+  const container=document.createElement('div');
+  container.className='mnode-container';
+  if(node.children && node.children.length) container.classList.add('collapsed'); // start collapsed (except root handled later)
+
+  const pill=document.createElement('div');
+  pill.className='pill'+(node.root?' root':'');
+  if(!node.root){ pill.style.setProperty('--pc',col.c); pill.style.setProperty('--pbg',col.bg); }
+  const hasKids = node.children && node.children.length;
+
+  let inner='';
+  if(!node.root) inner+='<span class="dot"></span>';
+  inner+='<span class="lbl">'+node.label+'</span>';
+  if(node.badge) inner+='<span class="badge">'+node.badge+'</span>';
+  if(hasKids) inner+='<span class="caret">▶</span>';
+  pill.innerHTML=inner;
+
+  pill.addEventListener('click',(e)=>{
+    e.stopPropagation();
+    if(hasKids){
+      container.classList.toggle('collapsed');
+      const caret=pill.querySelector('.caret');
+      if(caret) caret.style.transform=container.classList.contains('collapsed')?'rotate(0deg)':'rotate(90deg)';
+    }
+    showDetail(node, col);
+    if(selected) selected.classList.remove('sel');
+    selected=pill; pill.classList.add('sel');
+  });
+
+  container.appendChild(pill);
+
+  if(hasKids){
+    const kids=document.createElement('div');
+    kids.className='mchildren';
+    kids.style.setProperty('--bc',col.c);
+    node.children.forEach(ch=>kids.appendChild(makeNode(ch, colorKey)));
+    container.appendChild(kids);
+  }
+  return container;
+}
+
+const rootEl=makeNode(TREE,'b1');
+rootEl.classList.remove('collapsed'); // root expanded by default to show the 3 branches
+const rc=rootEl.querySelector('.caret'); if(rc) rc.style.transform='rotate(90deg)';
+stage.appendChild(rootEl);
+
+/* ================= DETAIL PANEL ================= */
+function showDetail(node, col){
+  const tag = node.type? 'Ejercicio' : (node.root?'Mapa':'Concepto');
+  const tagColor = node.type? 'var(--ex)' : (node.root? 'var(--orange)' : (col?col.c:'var(--b1)'));
+  let body = node.detailHtml || '';
+  if(node.type==='mc') body += renderMC(node.mc);
+  if(node.type==='match') body += renderMatch(node.match);
+  if(node.type==='case') body += renderCase(node.caseData);
+  panel.innerHTML =
+    '<div class="ph"><span class="tag" style="background:'+tagColor+'">'+tag+'</span>'+
+    '<h2>'+node.label+'</h2></div>'+
+    '<div class="pb" id="pbody">'+(body||'<p class="empty">Sin contenido adicional.</p>')+'</div>';
+  wireExercises(node);
+  panel.scrollTop=0;
+}
+
+function renderMC(mc){
+  let h='<p>'+mc.q+'</p>';
+  mc.opts.forEach((o,i)=>{ h+='<button class="opt" data-i="'+i+'">'+String.fromCharCode(65+i)+'. '+o+'</button>'; });
+  h+='<div class="fb" id="mcfb"></div>';
+  return h;
+}
+function renderMatch(m){
+  // shuffle right column
+  const rights=m.pairs.map((p,i)=>({t:p.r,i})).sort(()=>Math.random()-.5);
+  let h='<p>Empareja cada módulo con su descripción. Haz clic en uno de la izquierda y luego en su pareja de la derecha.</p><div class="match-grid">';
+  m.pairs.forEach((p,i)=>{
+    h+='<div class="mrow"><div class="mitem left" data-side="L" data-i="'+i+'">'+p.l+'</div>'+
+       '<div class="mitem right" data-side="R" data-i="'+rights[i].i+'">'+rights[i].t+'</div></div>';
+  });
+  h+='</div><div class="fb" id="matchfb"></div>';
+  return h;
+}
+function renderCase(c){
+  let h='<div class="casebox">'+c.text+'</div><div class="steps">';
+  c.steps.forEach(s=>h+='<span class="step">'+s+'</span>');
+  h+='</div>';
+  return h;
+}
+
+function wireExercises(node){
+  if(node.type==='mc'){
+    const fb=panel.querySelector('#mcfb');
+    panel.querySelectorAll('.opt').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const i=+btn.dataset.i;
+        panel.querySelectorAll('.opt').forEach(b=>b.classList.remove('ok','no'));
+        if(i===node.mc.answer){ btn.classList.add('ok'); fb.style.color='#2E7D32'; fb.textContent='✓ '+node.mc.okMsg; }
+        else{ btn.classList.add('no'); panel.querySelector('.opt[data-i="'+node.mc.answer+'"]').classList.add('ok'); fb.style.color='#c62828'; fb.textContent='✗ '+node.mc.noMsg; }
+      });
+    });
+  }
+  if(node.type==='match'){
+    let pickedL=null; let done=0; const total=node.match.pairs.length;
+    const fb=panel.querySelector('#matchfb');
+    panel.querySelectorAll('.mitem').forEach(it=>{
+      it.addEventListener('click',()=>{
+        if(it.classList.contains('done'))return;
+        if(it.dataset.side==='L'){
+          panel.querySelectorAll('.mitem.left').forEach(x=>x.classList.remove('picked'));
+          pickedL=it; it.classList.add('picked');
+        } else if(pickedL){
+          if(pickedL.dataset.i===it.dataset.i){
+            pickedL.classList.add('done'); pickedL.classList.remove('picked'); it.classList.add('done');
+            done++; pickedL=null;
+            if(done===total){ fb.style.color='#2E7D32'; fb.textContent='✓ ¡Emparejamiento completo!'; }
+          } else {
+            fb.style.color='#c62828'; fb.textContent='✗ Esa pareja no corresponde, intenta de nuevo.';
+            const wrong=it; wrong.style.borderColor='#c62828';
+            setTimeout(()=>{wrong.style.borderColor='';},500);
+          }
+        }
+      });
+    });
+  }
+}
+
+/* ================= CONTROLS ================= */
+function setCollapsed(state){
+  stage.querySelectorAll('.mnode-container').forEach(c=>{
+    if(c.querySelector(':scope > .mchildren')){
+      c.classList.toggle('collapsed',state);
+      const caret=c.querySelector(':scope > .pill .caret');
+      if(caret) caret.style.transform=state?'rotate(0deg)':'rotate(90deg)';
+    }
+  });
+  if(state){ rootEl.classList.remove('collapsed'); const r=rootEl.querySelector(':scope > .pill .caret'); if(r) r.style.transform='rotate(90deg)'; }
+}
+document.getElementById('expandAll').onclick=()=>setCollapsed(false);
+document.getElementById('collapseAll').onclick=()=>{ setCollapsed(true); };
+
+let zoom=1;
+const vp=document.getElementById('viewport');
+function applyZoom(){ stage.style.transform='scale('+zoom+')'; }
+document.getElementById('zoomIn').onclick=()=>{ zoom=Math.min(1.8,zoom+0.12); applyZoom(); };
+document.getElementById('zoomOut').onclick=()=>{ zoom=Math.max(0.5,zoom-0.12); applyZoom(); };
+document.getElementById('zoomReset').onclick=()=>{ zoom=1; applyZoom(); vp.scrollTo({top:0,left:0,behavior:'smooth'}); };
+
+/* drag to pan */
+let drag=false,sx,sy,sl,st;
+vp.addEventListener('mousedown',e=>{ if(e.target.closest('.pill')||e.target.closest('.panel'))return; drag=true;vp.classList.add('dragging');sx=e.clientX;sy=e.clientY;sl=vp.scrollLeft;st=vp.scrollTop; });
+window.addEventListener('mousemove',e=>{ if(!drag)return; vp.scrollLeft=sl-(e.clientX-sx); vp.scrollTop=st-(e.clientY-sy); });
+window.addEventListener('mouseup',()=>{ drag=false;vp.classList.remove('dragging'); });
+
+/* open root detail initially */
+showDetail(TREE,{c:'var(--orange)'});
+</script>
+</body>
+</html>
